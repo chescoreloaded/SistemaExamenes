@@ -1,0 +1,123 @@
+# ===================================
+# .gitignore para Exam System Frontend
+# React + Vite + Supabase
+# ===================================
+
+# ==================
+# Dependencies
+# ==================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ==================
+# Build Output
+# ==================
+dist/
+dist-ssr/
+build/
+*.local
+
+# ==================
+# Environment Variables
+# ==================
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ==================
+# Editor Directories and Files
+# ==================
+.vscode/
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.swp
+*.swo
+*~
+
+# ==================
+# Testing
+# ==================
+coverage/
+*.lcov
+.nyc_output/
+
+# ==================
+# Vercel
+# ==================
+.vercel
+.vercel/
+
+# ==================
+# Cache
+# ==================
+.cache/
+*.tsbuildinfo
+.eslintcache
+
+# ==================
+# Logs
+# ==================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ==================
+# OS Files
+# ==================
+.DS_Store
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ==================
+# Temporary Files
+# ==================
+*.tmp
+*.temp
+*.bak
+*.backup
+.temp/
+temp/
+
+# ==================
+# Supabase (si usas local dev)
+# ==================
+.supabase/
+supabase/.env
+
+# ==================
+# Migration Scripts Output
+# ==================
+supabase-migration/*.log
+supabase-migration/.env
+
+# ==================
+# Optional: Development Files
+# ==================
+# Descomenta si usas estos:
+# .turbo/
+# .next/
+# .nuxt/
+# .output/
+
+# ==================
+# Keep These Files
+# ==================
+!.gitkeep
+!.env.example
