@@ -1,29 +1,29 @@
-import React from 'react';
+import PropTypes from 'prop-types';
+import { motion } from 'framer-motion';
 
-export function Badge({ 
-  children, 
-  variant = 'default',
-  size = 'md',
-  className = '' 
-}) {
+export function Badge({ children, variant = 'default', className = '' }) {
   const variants = {
-    default: 'bg-gray-100 text-gray-700',
-    primary: 'bg-blue-100 text-blue-700',
-    success: 'bg-green-100 text-green-700',
-    danger: 'bg-red-100 text-red-700',
-    warning: 'bg-orange-100 text-orange-700',
-    info: 'bg-cyan-100 text-cyan-700'
+    default: 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 border border-gray-300',
+    primary: 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-md',
+    success: 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-md',
+    danger: 'bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-md',
+    warning: 'bg-gradient-to-r from-yellow-400 to-orange-400 text-white shadow-md',
+    info: 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-md'
   };
-  
-  const sizes = {
-    sm: 'px-2 py-0.5 text-xs',
-    md: 'px-2.5 py-1 text-sm',
-    lg: 'px-3 py-1.5 text-base'
-  };
-  
+
   return (
-    <span className={`inline-flex items-center rounded-full font-medium ${variants[variant]} ${sizes[size]} ${className}`}>
+    <motion.span
+      className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${variants[variant]} ${className}`}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+    >
       {children}
-    </span>
+    </motion.span>
   );
 }
+
+Badge.propTypes = {
+  children: PropTypes.node.isRequired,
+  variant: PropTypes.oneOf(['default', 'primary', 'success', 'danger', 'warning', 'info']),
+  className: PropTypes.string
+};

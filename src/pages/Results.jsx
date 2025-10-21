@@ -1,215 +1,148 @@
 import { useEffect } from 'react';
-import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { Button } from '../components/common/Button';
-import { Card } from '../components/common/Card';
-import { ResultsSummary, CategoryBreakdown } from '../components/results';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Breadcrumbs } from '@/components/common/Breadcrumbs';
+import { Button, Card } from '@/components/common';
 
 export default function Results() {
   const { subjectId } = useParams();
-  const location = useLocation();
   const navigate = useNavigate();
+  const location = useLocation();
   const results = location.state?.results;
 
   useEffect(() => {
     if (!results) {
-      navigate('/subjects', { replace: true });
+      navigate('/');
     }
   }, [results, navigate]);
 
-  if (!results) {
-    return null;
-  }
+  if (!results) return null;
 
-  // ✅ CRITICAL: Verificar modo
-  const isPracticeMode = results.mode === 'practice';
+  const passed = results.score >= results.passingScore;
 
-  // Efecto de confetti si aprobó (solo en modo examen)
-  useEffect(() => {
-    if (!isPracticeMode && results.passed && results.score === 100) {
-      console.log('🎉 ¡Examen perfecto!');
-    }
-  }, [results, isPracticeMode]);
+  // Breadcrumbs
+  const breadcrumbItems = [
+    { label: 'Inicio', href: '/', icon: '🏠' },
+    { label: results.subjectName, href: '/', icon: '📚' },
+    { label: 'Resultados', icon: '📊' }
+  ];
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4">
-        {/* Back button */}
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/')}
-          icon={
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          }
-          className="mb-6"
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+      <Breadcrumbs items={breadcrumbItems} />
+      
+      <div className="max-w-4xl mx-auto px-4 py-12">
+        {/* Encabezado con animación */}
+        <motion.div
+          className="text-center mb-12"
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
         >
-          Volver al inicio
-        </Button>
-
-        {/* ✅ Badge de modo */}
-        <div className="mb-4 text-center">
-          <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold ${
-            isPracticeMode 
-              ? 'bg-purple-100 text-purple-700' 
-              : 'bg-blue-100 text-blue-700'
-          }`}>
-            {isPracticeMode ? '🎯 Modo Práctica' : '📝 Modo Examen'}
-          </span>
-        </div>
-
-        {/* Results Summary */}
-        <div className="mb-6">
-          <ResultsSummary results={results} />
-        </div>
-
-        {/* ✅ Category Breakdown (solo en modo examen) */}
-        {!isPracticeMode && results.byCategory && (
-          <div className="mb-6">
-            <CategoryBreakdown byCategory={results.byCategory} />
-          </div>
-        )}
-
-        {/* ✅ Mensaje específico de modo práctica */}
-        {isPracticeMode && (
-          <Card padding="lg" className="mb-6 text-center bg-gradient-to-br from-purple-50 to-blue-50">
-            <div className="text-4xl mb-3">💡</div>
-            <h3 className="text-xl font-bold text-gray-800 mb-2">
-              Modo Práctica Completado
-            </h3>
-            <p className="text-gray-600">
-              Este resultado no se guarda en tu historial. 
-              Practica las veces que quieras sin presión.
-            </p>
-          </Card>
-        )}
-
-        {/* Actions - Diferentes según el modo */}
-        {isPracticeMode ? (
-          // ✅ MODO PRÁCTICA: Botones simples
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              variant="primary"
-              onClick={() => navigate(`/exam/${subjectId}?mode=practice`)}
-              size="lg"
-              icon="🔄"
-            >
-              Practicar de nuevo
-            </Button>
-            
-            <Button
-              variant="outline"
-              onClick={() => navigate('/')}
-              size="lg"
-            >
-              Volver al inicio
-            </Button>
-          </div>
-        ) : (
-          // ✅ MODO EXAMEN: Más opciones
-          <>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
-              <Button
-                variant="outline"
-                onClick={() => navigate(`/exam/${subjectId}?mode=exam`)}
-                size="lg"
-              >
-                Repetir examen
-              </Button>
-              
-              <Button
-                variant="primary"
-                onClick={() => navigate(`/exam/${subjectId}?mode=practice`)}
-                size="lg"
-              >
-                Modo práctica
-              </Button>
-
-              <Button
-                variant="secondary"
-                onClick={() => navigate('/')}
-                size="lg"
-              >
-                Otras materias
-              </Button>
-            </div>
-
-            {/* Opción de revisar respuestas */}
-            <Card padding="lg" className="text-center">
-              <h3 className="text-lg font-semibold text-gray-800 mb-3">
-                📋 Revisa tus respuestas
-              </h3>
-              <ReviewAnswers results={results} />
-            </Card>
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ========================================
-// COMPONENTE: ReviewAnswers
-// ========================================
-function ReviewAnswers({ results }) {
-  if (!results.questions || results.questions.length === 0) {
-    return <p className="text-gray-600">No hay preguntas para revisar</p>;
-  }
-
-  return (
-    <div className="space-y-4 max-h-96 overflow-y-auto">
-      {results.questions.map((question, index) => {
-        const userAnswer = results.answers[question.id];
-        const isCorrect = userAnswer === question.correct;
-        const wasAnswered = userAnswer !== undefined;
-
-        return (
-          <div
-            key={question.id}
-            className={`p-4 rounded-lg border-l-4 text-left ${
-              !wasAnswered 
-                ? 'border-gray-400 bg-gray-50'
-                : isCorrect 
-                ? 'border-green-500 bg-green-50' 
-                : 'border-red-500 bg-red-50'
-            }`}
+          <motion.div
+            className="text-8xl mb-6"
+            animate={{ 
+              scale: [1, 1.2, 1],
+              rotate: [0, 10, -10, 0]
+            }}
+            transition={{ duration: 1, repeat: 3 }}
           >
-            <div className="flex items-start justify-between mb-2">
-              <p className="font-semibold text-gray-800">
-                {index + 1}. {question.question}
+            {passed ? '🎉' : '📚'}
+          </motion.div>
+          <h1 className={`text-4xl font-bold mb-4 ${
+            passed 
+              ? 'bg-gradient-to-r from-green-600 to-emerald-600' 
+              : 'bg-gradient-to-r from-orange-600 to-red-600'
+          } bg-clip-text text-transparent`}>
+            {passed ? '¡Felicidades! Has aprobado' : 'Sigue practicando'}
+          </h1>
+          <p className="text-xl text-gray-600">
+            {results.subjectName}
+          </p>
+        </motion.div>
+
+        {/* Tarjeta de puntuación principal */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.3 }}
+        >
+          <Card className="p-8 mb-8 bg-gradient-to-br from-white to-blue-50 border-4 border-blue-200">
+            <div className="text-center">
+              <div className="text-7xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                {results.score.toFixed(1)}%
+              </div>
+              <p className="text-gray-600 text-lg mb-6">
+                Puntuación final
               </p>
-              <span className={`ml-2 font-semibold whitespace-nowrap ${
-                !wasAnswered 
-                  ? 'text-gray-600'
-                  : isCorrect 
-                  ? 'text-green-600' 
-                  : 'text-red-600'
-              }`}>
-                {!wasAnswered ? '○ Sin responder' : isCorrect ? '✓ Correcta' : '✗ Incorrecta'}
-              </span>
+              
+              {/* Estadísticas en grid */}
+              <div className="grid grid-cols-3 gap-4 mt-8">
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-xl border-2 border-green-200">
+                  <div className="text-3xl font-bold text-green-600">
+                    {results.correctAnswers}
+                  </div>
+                  <div className="text-sm text-gray-600">Correctas</div>
+                </div>
+                <div className="bg-gradient-to-br from-red-50 to-pink-50 p-4 rounded-xl border-2 border-red-200">
+                  <div className="text-3xl font-bold text-red-600">
+                    {results.totalQuestions - results.correctAnswers}
+                  </div>
+                  <div className="text-sm text-gray-600">Incorrectas</div>
+                </div>
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-xl border-2 border-blue-200">
+                  <div className="text-3xl font-bold text-blue-600">
+                    {Math.floor(results.timeSpent / 60)}:{(results.timeSpent % 60).toString().padStart(2, '0')}
+                  </div>
+                  <div className="text-sm text-gray-600">Tiempo</div>
+                </div>
+              </div>
             </div>
+          </Card>
+        </motion.div>
 
-            {wasAnswered && (
-              <div className="text-sm space-y-1 mt-2">
-                <p className="text-gray-700">
-                  <strong>Tu respuesta:</strong> {question.options[userAnswer]}
-                </p>
-                {!isCorrect && (
-                  <p className="text-green-700">
-                    <strong>Correcta:</strong> {question.options[question.correct]}
-                  </p>
-                )}
-              </div>
-            )}
+        {/* ✅ NUEVO: Botón de revisión detallada */}
+        <motion.div
+          className="mb-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <button
+            onClick={() => navigate(`/review/${subjectId}`, { state: { results } })}
+            className="w-full bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500 hover:from-purple-600 hover:via-indigo-600 hover:to-blue-600 text-white py-4 px-6 rounded-xl font-bold text-lg shadow-xl hover:shadow-2xl transition-all transform hover:scale-[1.02] flex items-center justify-center gap-3"
+          >
+            <span className="text-2xl">🔍</span>
+            <span>Ver revisión detallada de todas las preguntas</span>
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </motion.div>
 
-            {question.explanation && (
-              <div className="mt-3 p-3 bg-white rounded text-sm text-gray-600 border border-gray-200">
-                <strong>💡 Explicación:</strong> {question.explanation}
-              </div>
-            )}
-          </div>
-        );
-      })}
+        {/* Botones de acción */}
+        <motion.div
+          className="flex gap-4 justify-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+        >
+          <Button
+            variant="outline"
+            onClick={() => navigate('/')}
+            className="px-8 py-3"
+          >
+            ← Volver al inicio
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => navigate(`/exam/${subjectId}?mode=exam`)}
+            className="px-8 py-3"
+          >
+            🔄 Intentar de nuevo
+          </Button>
+        </motion.div>
+      </div>
     </div>
   );
 }

@@ -1,4 +1,3 @@
-// src/hooks/useFlashcards.js
 import { useState, useEffect, useCallback } from 'react';
 import { flashcardsService } from '@/services/flashcardsService';
 import { subjectsService } from '@/services/subjectsService';
@@ -12,6 +11,10 @@ export function useFlashcards(subjectId) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [subjectName, setSubjectName] = useState('');
+  const [subjectIcon, setSubjectIcon] = useState('📚'); 
+  const [markedCards, setMarkedCards] = useState(new Set());
+  const [visitedCards, setVisitedCards] = useState(new Set([0]));
+  const [studiedCards, setStudiedCards] = useState(new Set());
 
   useEffect(() => {
     const loadFlashcards = async () => {
@@ -27,8 +30,11 @@ export function useFlashcards(subjectId) {
 
         const subject = await subjectsService.getById(subjectId);
         setSubjectName(subject?.name || 'Materia');
+        setSubjectIcon(subject?.icon || '📚');
 
         const fetchedCards = await flashcardsService.getBySubject(subjectId);
+        
+        console.log('🃏 Flashcards cargadas:', fetchedCards);
         
         if (!fetchedCards || fetchedCards.length === 0) {
           setError('No hay flashcards disponibles para esta materia');
@@ -52,27 +58,49 @@ export function useFlashcards(subjectId) {
   }, [subjectId]);
 
   const flipCard = useCallback(() => {
-    setIsFlipped(prev => !prev);
-  }, []);
+    setIsFlipped(prev => {
+      const newFlipped = !prev;
+      // Marcar como estudiada solo al voltear por primera vez
+      if (newFlipped && !studiedCards.has(currentIndex)) {
+        setStudiedCards(prevStudied => new Set([...prevStudied, currentIndex]));
+      }
+      return newFlipped;
+    });
+  }, [currentIndex, studiedCards]);
 
+  // ✅ FIX: Cambiar index y flip en el MISMO batch de estado
   const nextCard = useCallback(() => {
     if (currentIndex < cards.length - 1) {
-      setIsFlipped(false);
-      setCurrentIndex(prev => prev + 1);
+      const nextIndex = currentIndex + 1;
+      // Usar función updater para asegurar sincronización
+      setCurrentIndex(() => {
+        setIsFlipped(false); // Se ejecuta en el mismo batch
+        setVisitedCards(prev => new Set([...prev, nextIndex]));
+        return nextIndex;
+      });
     }
   }, [currentIndex, cards.length]);
 
+  // ✅ FIX: Cambiar index y flip en el MISMO batch de estado
   const previousCard = useCallback(() => {
     if (currentIndex > 0) {
-      setIsFlipped(false);
-      setCurrentIndex(prev => prev - 1);
+      const prevIndex = currentIndex - 1;
+      setCurrentIndex(() => {
+        setIsFlipped(false); // Se ejecuta en el mismo batch
+        setVisitedCards(prev => new Set([...prev, prevIndex]));
+        return prevIndex;
+      });
     }
   }, [currentIndex]);
 
+  // ✅ FIX: Cambiar index y flip en el MISMO batch de estado
   const goToCard = useCallback((index) => {
     if (index >= 0 && index < cards.length) {
-      setCurrentIndex(index);
-      setIsFlipped(false);
+      setCurrentIndex(() => {
+        setIsFlipped(false); // Se ejecuta en el mismo batch
+        setVisitedCards(prev => new Set([...prev, index]));
+        return index;
+      });
     }
   }, [cards.length]);
 
@@ -81,13 +109,29 @@ export function useFlashcards(subjectId) {
     setCards(shuffled);
     setCurrentIndex(0);
     setIsFlipped(false);
+    setVisitedCards(new Set([0]));
+    setStudiedCards(new Set());
   }, [cards]);
 
   const reset = useCallback(() => {
     setCards([...originalCards]);
     setCurrentIndex(0);
     setIsFlipped(false);
+    setVisitedCards(new Set([0]));
+    setStudiedCards(new Set());
   }, [originalCards]);
+
+  const toggleMark = useCallback((cardId) => {
+    setMarkedCards(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(cardId)) {
+        newSet.delete(cardId);
+      } else {
+        newSet.add(cardId);
+      }
+      return newSet;
+    });
+  }, []);
 
   const markAsStudied = useCallback((cardId) => {
     console.log('Tarjeta estudiada:', cardId);
@@ -102,6 +146,10 @@ export function useFlashcards(subjectId) {
     loading,
     error,
     subjectName,
+    subjectIcon,
+    markedCards,
+    visitedCards,
+    studiedCards,
     flipCard,
     nextCard,
     previousCard,
@@ -109,9 +157,10 @@ export function useFlashcards(subjectId) {
     shuffle,
     reset,
     markAsStudied,
+    toggleMark,
     hasNext: currentIndex < cards.length - 1,
     hasPrevious: currentIndex > 0,
-    progress: cards.length > 0 ? ((currentIndex + 1) / cards.length) * 100 : 0
+    progress: cards.length > 0 ? (studiedCards.size / cards.length) * 100 : 0
   };
 }
 

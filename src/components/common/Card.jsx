@@ -1,30 +1,24 @@
-import React from 'react';
+import PropTypes from 'prop-types';
+import { motion } from 'framer-motion';
 
-export function Card({ 
-  children, 
-  className = '', 
-  padding = 'md',
-  hover = false,
-  onClick = null
-}) {
-  const paddings = {
-    none: '',
-    sm: 'p-3',
-    md: 'p-4',
-    lg: 'p-6',
-    xl: 'p-8'
-  };
-  
-  const baseStyles = 'bg-white rounded-lg shadow-md border border-gray-200';
-  const hoverStyles = hover ? 'hover:shadow-lg transition-shadow duration-200 cursor-pointer' : '';
-  const clickStyles = onClick ? 'cursor-pointer' : '';
-  
+export function Card({ children, className = '', hover = true }) {
   return (
-    <div 
-      className={`${baseStyles} ${paddings[padding]} ${hoverStyles} ${clickStyles} ${className}`}
-      onClick={onClick}
+    <motion.div
+      className={`bg-white rounded-xl shadow-lg border-2 border-gray-100 overflow-hidden ${className}`}
+      whileHover={hover ? { 
+        y: -8, 
+        scale: 1.02,
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.15)'
+      } : {}}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
     >
       {children}
-    </div>
+    </motion.div>
   );
 }
+
+Card.propTypes = {
+  children: PropTypes.node.isRequired,
+  className: PropTypes.string,
+  hover: PropTypes.bool
+};
