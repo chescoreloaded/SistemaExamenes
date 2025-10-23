@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { flashcardsService } from '@/services/flashcardsService';
 import { subjectsService } from '@/services/subjectsService';
 import { shuffleArray } from '@/utils/shuffle';
+import { usePersistence } from './usePersistence';
 
 export function useFlashcards(subjectId) {
   const [cards, setCards] = useState([]);
@@ -15,6 +16,61 @@ export function useFlashcards(subjectId) {
   const [markedCards, setMarkedCards] = useState(new Set());
   const [visitedCards, setVisitedCards] = useState(new Set([0]));
   const [studiedCards, setStudiedCards] = useState(new Set());
+  
+  // ✅ SessionId estable para poder recuperar
+  const sessionId = useRef(`flashcard-${subjectId}`);
+  const startTime = useRef(new Date());
+
+  // ✅ NUEVO: Autosave para flashcards
+  const { 
+    save: forceSave, 
+    saveStatus, 
+    isSaving, 
+    isSaved,
+    recover 
+  } = usePersistence({
+    sessionId: sessionId.current,
+    data: {
+      subjectId,
+      currentIndex,
+      markedCards: Array.from(markedCards),
+      visitedCards: Array.from(visitedCards),
+      studiedCards: Array.from(studiedCards),
+      isFlipped,
+      startTime: startTime.current?.toISOString(),
+      cardIds: cards.map(c => c.id)
+    },
+    saveInterval: 120000, // ✅ 2 minutos (120 segundos)
+    enabled: true,
+    type: 'flashcard'
+  });
+
+  /**
+   * ✅ NUEVO: Recuperar progreso al cargar
+   */
+  useEffect(() => {
+    const recoverProgress = async () => {
+      const recovered = await recover();
+      if (recovered && cards.length > 0) {
+        console.log('🔄 Recuperando progreso de flashcards...', recovered);
+        
+        // Restaurar estado
+        setCurrentIndex(recovered.currentIndex || 0);
+        setMarkedCards(new Set(recovered.markedCards || []));
+        setVisitedCards(new Set(recovered.visitedCards || [0]));
+        setStudiedCards(new Set(recovered.studiedCards || []));
+        setIsFlipped(recovered.isFlipped || false);
+        
+        if (recovered.startTime) {
+          startTime.current = new Date(recovered.startTime);
+        }
+      }
+    };
+
+    if (sessionId.current && cards.length > 0) {
+      recoverProgress();
+    }
+  }, [cards.length]); // Ejecutar después de cargar las cards
 
   useEffect(() => {
     const loadFlashcards = async () => {
@@ -111,6 +167,7 @@ export function useFlashcards(subjectId) {
     setIsFlipped(false);
     setVisitedCards(new Set([0]));
     setStudiedCards(new Set());
+    // ✅ NO cambiar sessionId para mantener progreso
   }, [cards]);
 
   const reset = useCallback(() => {
@@ -119,6 +176,8 @@ export function useFlashcards(subjectId) {
     setIsFlipped(false);
     setVisitedCards(new Set([0]));
     setStudiedCards(new Set());
+    setMarkedCards(new Set());
+    // ✅ NO cambiar sessionId para mantener progreso
   }, [originalCards]);
 
   const toggleMark = useCallback((cardId) => {
@@ -150,6 +209,13 @@ export function useFlashcards(subjectId) {
     markedCards,
     visitedCards,
     studiedCards,
+    // ✅ NUEVO: Estados de autosave
+    saveStatus,
+    isSaving,
+    isSaved,
+    forceSave,
+    sessionId: sessionId.current, // ✅ NUEVO: Exponer sessionId
+    // Acciones
     flipCard,
     nextCard,
     previousCard,

@@ -1,119 +1,122 @@
-import { memo, useMemo } from 'react';
-import PropTypes from 'prop-types';
+import { memo } from 'react';
 import { motion } from 'framer-motion';
+import PropTypes from 'prop-types';
 
-// ✅ Componente memoizado
-const FlashcardNavigator = memo(function FlashcardNavigator({ 
-  cards, 
-  currentIndex, 
-  markedCards = new Set(),
-  studiedCards = new Set(),
-  onCardClick,
-  onToggleMark 
+export const FlashcardNavigator = memo(function FlashcardNavigator({
+  cards,
+  currentIndex,
+  markedCards,
+  studiedCards,
+  onGoToCard
 }) {
-  // ✅ Memoizar funciones de utilidad
-  const getCardStatus = useMemo(() => (index) => {
-    const cardId = cards[index]?.id;
-    if (index === currentIndex) return 'current';
-    if (markedCards.has(cardId)) return 'marked';
-    if (studiedCards.has(index)) return 'studied';
-    return 'pending';
-  }, [cards, currentIndex, markedCards, studiedCards]);
+  if (!cards || cards.length === 0) return null;
 
-  const getCardColor = (status) => {
-    switch(status) {
+  const getCardStatus = (card, index) => {
+    const isStudied = studiedCards && studiedCards.has(index);
+    const isMarked = markedCards && markedCards.has(card.id);
+    const isCurrent = index === currentIndex;
+
+    if (isCurrent) {
+      return 'current';
+    }
+    if (isMarked) {
+      return 'marked';
+    }
+    if (isStudied) {
+      return 'studied';
+    }
+    return 'unstudied';
+  };
+
+  const getStatusStyles = (status) => {
+    switch (status) {
       case 'current':
-        return 'bg-gradient-to-br from-indigo-500 to-purple-500 text-white shadow-lg scale-110 ring-4 ring-indigo-300';
+        return 'bg-gradient-to-br from-indigo-500 to-purple-500 text-white ring-4 ring-indigo-300 scale-110 shadow-lg';
       case 'marked':
-        return 'bg-gradient-to-br from-yellow-400 to-orange-400 text-white border-2 border-yellow-500';
+        return 'bg-gradient-to-br from-yellow-400 to-orange-400 text-white hover:scale-105 shadow-md';
       case 'studied':
-        return 'bg-gradient-to-br from-green-100 to-emerald-100 text-green-700 border border-green-300';
+        return 'bg-gradient-to-br from-green-100 to-emerald-100 text-green-800 hover:bg-green-200 hover:scale-105';
+      case 'unstudied':
       default:
-        return 'bg-white text-gray-600 border border-gray-200 hover:border-indigo-300';
+        return 'bg-white text-gray-700 hover:bg-gray-100 hover:scale-105 border-2 border-gray-300';
     }
   };
 
-  // ✅ Verificar si tarjeta actual está marcada
-  const isCurrentMarked = useMemo(
-    () => markedCards.has(cards[currentIndex]?.id),
-    [markedCards, cards, currentIndex]
-  );
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'current':
+        return '📍';
+      case 'marked':
+        return '⭐';
+      case 'studied':
+        return '✓';
+      case 'unstudied':
+      default:
+        return '';
+    }
+  };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 sticky top-24">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-bold text-gray-800 flex items-center gap-2">
-          📚 Navegación de Tarjetas
+    <div className="bg-white rounded-2xl shadow-xl p-4 border-2 border-indigo-200">
+      <div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-indigo-100">
+        <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+          🗂️ Navegación de Tarjetas
         </h3>
-        {onToggleMark && (
-          <button
-            onClick={() => onToggleMark(cards[currentIndex]?.id)}
-            className={`text-2xl transition-transform hover:scale-125 ${
-              isCurrentMarked ? 'animate-bounce' : ''
-            }`}
-            title="Marcar tarjeta"
-          >
-            {isCurrentMarked ? '⭐' : '☆'}
-          </button>
-        )}
+        <span className="text-xs text-gray-500 bg-indigo-100 px-2 py-1 rounded-full">
+          {studiedCards.size} / {cards.length}
+        </span>
       </div>
 
-      {/* Grid de tarjetas */}
-      <div className="grid grid-cols-5 gap-2 max-h-96 overflow-y-auto pr-2">
+      <div className="grid grid-cols-5 gap-2 max-h-[500px] overflow-y-auto pr-2">
         {cards.map((card, index) => {
-          const status = getCardStatus(index);
+          const status = getCardStatus(card, index);
+          const styles = getStatusStyles(status);
+          const icon = getStatusIcon(status);
+
           return (
             <motion.button
               key={card.id}
-              onClick={() => onCardClick(index)}
+              onClick={() => onGoToCard(index)}
               className={`
-                aspect-square rounded-lg font-bold text-sm
-                transition-all duration-200
-                hover:scale-105 hover:shadow-md
-                ${getCardColor(status)}
+                relative min-h-[44px] rounded-lg font-bold text-sm
+                transition-all duration-200 flex flex-col items-center justify-center
+                ${styles}
               `}
-              whileHover={{ rotate: status === 'current' ? 0 : 5 }}
+              whileHover={{ scale: status === 'current' ? 1.1 : 1.05 }}
               whileTap={{ scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: status === 'current' ? 1.1 : 1 }}
+              transition={{ duration: 0.2 }}
             >
-              {index + 1}
+              <span className="text-xs mb-0.5">{icon}</span>
+              <span>{index + 1}</span>
             </motion.button>
           );
         })}
       </div>
 
       {/* Leyenda */}
-      <div className="mt-4 pt-4 border-t border-gray-200 space-y-2 text-xs">
+      <div className="mt-4 pt-3 border-t-2 border-indigo-100 space-y-1 text-xs">
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-gradient-to-br from-indigo-500 to-purple-500"></div>
+          <div className="w-6 h-6 rounded bg-gradient-to-br from-indigo-500 to-purple-500" />
           <span className="text-gray-600">Tarjeta actual</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-gradient-to-br from-green-100 to-emerald-100 border border-green-300"></div>
-          <span className="text-gray-600">Estudiadas ({studiedCards.size})</span>
+          <div className="w-6 h-6 rounded bg-gradient-to-br from-green-100 to-emerald-100 border-2 border-green-300" />
+          <span className="text-gray-600">Estudiada</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-gradient-to-br from-yellow-400 to-orange-400"></div>
-          <span className="text-gray-600">Marcadas ({markedCards.size})</span>
+          <div className="w-6 h-6 rounded bg-gradient-to-br from-yellow-400 to-orange-400" />
+          <span className="text-gray-600">Marcada</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-white border border-gray-200"></div>
+          <div className="w-6 h-6 rounded bg-white border-2 border-gray-300" />
           <span className="text-gray-600">Sin estudiar</span>
-        </div>
-      </div>
-
-      {/* Atajos */}
-      <div className="mt-4 pt-4 border-t border-gray-200">
-        <p className="text-xs font-semibold text-gray-700 mb-2">⌨️ Atajos:</p>
-        <div className="space-y-1 text-xs text-gray-600">
-          <div>↔️ Navegar tarjetas</div>
-          <div>⭐ <kbd className="bg-gray-100 px-1 rounded">M</kbd> Marcar</div>
-          <div>🔄 <kbd className="bg-gray-100 px-1 rounded">Espacio</kbd> Voltear</div>
         </div>
       </div>
     </div>
   );
 }, (prevProps, nextProps) => {
-  // ✅ Custom comparison
   return (
     prevProps.currentIndex === nextProps.currentIndex &&
     prevProps.cards.length === nextProps.cards.length &&
@@ -123,12 +126,15 @@ const FlashcardNavigator = memo(function FlashcardNavigator({
 });
 
 FlashcardNavigator.propTypes = {
-  cards: PropTypes.array.isRequired,
+  cards: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string.isRequired
+    })
+  ).isRequired,
   currentIndex: PropTypes.number.isRequired,
-  markedCards: PropTypes.instanceOf(Set),
-  studiedCards: PropTypes.instanceOf(Set),
-  onCardClick: PropTypes.func.isRequired,
-  onToggleMark: PropTypes.func
+  markedCards: PropTypes.instanceOf(Set).isRequired,
+  studiedCards: PropTypes.instanceOf(Set).isRequired,
+  onGoToCard: PropTypes.func.isRequired
 };
 
 FlashcardNavigator.displayName = 'FlashcardNavigator';

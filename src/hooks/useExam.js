@@ -4,6 +4,8 @@ import { subjectsService } from '../services/subjectsService';
 import { resultsService } from '../services/resultsService';
 import { shuffleArray, shuffleOptions } from '../utils/shuffle';
 import { calculateResults } from '../utils/calculateScore';
+import { usePersistence, useSyncUnsynced } from './usePersistence';
+import { dbManager } from '../lib/indexedDB';
 
 export function useExam(subjectId, mode = 'exam') {
   // Estado principal
@@ -25,6 +27,84 @@ export function useExam(subjectId, mode = 'exam') {
   // Referencias
   const startTime = useRef(null);
   const hasUnsavedChanges = useRef(false);
+  // ✅ NUEVO: SessionId estable para poder recuperar
+  // Solo incluye subjectId y mode, NO timestamp
+  const sessionId = useRef(`exam-${subjectId}-${mode}`);
+
+  // ✅ NUEVO: Autosave con hook de persistencia
+  const { 
+    save: forceSave, 
+    saveStatus, 
+    isSaving, 
+    isSaved,
+    recover 
+  } = usePersistence({
+    sessionId: sessionId.current,
+    data: {
+      subjectId,
+      mode,
+      currentIndex,
+      answers,
+      reviewedQuestions: Array.from(reviewedQuestions),
+      timeRemaining,
+      timerRunning,
+      startTime: startTime.current?.toISOString(),
+      questions: questions.map(q => q.id) // Solo IDs para ahorrar espacio
+    },
+    saveInterval: 120000, // ✅ 2 minutos (120 segundos)
+    onSave: async (data) => {
+      // Solo guardar en Supabase en modo examen y si no está finalizado
+      if (mode === 'exam' && !isFinished) {
+        console.log('☁️ Guardando progreso parcial en Supabase...');
+        // Aquí podrías llamar a un endpoint de Supabase para guardar progreso parcial
+        // await resultsService.savePartialProgress(data);
+      }
+    },
+    enabled: !isFinished,
+    type: 'exam'
+  });
+
+  // ✅ NUEVO: Sincronizar sesiones no sincronizadas al montar
+  useSyncUnsynced(async (session) => {
+    if (session.mode === 'exam') {
+      console.log('🔄 Sincronizando sesión pendiente:', session.sessionId);
+      // await resultsService.savePartialProgress(session);
+    }
+  });
+
+  /**
+   * ✅ NUEVO: Recuperar progreso DESPUÉS de cargar preguntas
+   */
+  useEffect(() => {
+    const recoverProgress = async () => {
+      // Solo recuperar si ya cargamos las preguntas
+      if (questions.length === 0 || isFinished) return;
+      
+      console.log('🔍 Buscando progreso guardado para:', sessionId.current);
+      const recovered = await recover();
+      
+      if (recovered && !isFinished) {
+        console.log('🔄 Recuperando progreso...', recovered);
+        
+        // Restaurar estado
+        setCurrentIndex(recovered.currentIndex || 0);
+        setAnswers(recovered.answers || {});
+        setReviewedQuestions(new Set(recovered.reviewedQuestions || []));
+        setTimeRemaining(recovered.timeRemaining || 0);
+        setTimerRunning(recovered.timerRunning || false);
+        
+        if (recovered.startTime) {
+          startTime.current = new Date(recovered.startTime);
+        }
+      } else {
+        console.log('ℹ️ No se encontró progreso previo o examen finalizado');
+      }
+    };
+
+    if (sessionId.current && questions.length > 0) {
+      recoverProgress();
+    }
+  }, [questions.length]); // Ejecutar cuando se carguen las preguntas
 
   /**
    * Timer effect
@@ -92,7 +172,11 @@ export function useExam(subjectId, mode = 'exam') {
       }
 
       setQuestions(loadedQuestions);
-      startTime.current = new Date();
+      
+      // Solo establecer startTime si no se recuperó
+      if (!startTime.current) {
+        startTime.current = new Date();
+      }
 
       // Iniciar timer solo en modo examen
       if (mode === 'exam' && subjectConfig.settings.timeLimit > 0) {
@@ -164,59 +248,66 @@ export function useExam(subjectId, mode = 'exam') {
    * Finalizar examen
    */
   const finishExam = useCallback(async () => {
-  try {
-    // Detener timer
-    setTimerRunning(false);
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
-    
-    const endTime = new Date();
-    const timeSpent = startTime.current 
-      ? Math.floor((endTime - startTime.current) / 1000)
-      : 0;
-
-    const calculatedResults = calculateResults(questions, answers);
-    
-    const examResults = {
-      subjectId,
-      subjectName: config?.name || 'Materia',
-      mode, // ✅ CRÍTICO: Incluir el modo
-      ...calculatedResults,
-      passed: calculatedResults.score >= (config?.settings.passingScore || 70),
-      passingScore: config?.settings.passingScore || 70,
-      timeSpent,
-      startedAt: startTime.current?.toISOString(),
-      completedAt: endTime.toISOString(),
-      answers,
-      reviewedQuestions: Array.from(reviewedQuestions),
-      questions
-    };
-
-    setResults(examResults);
-    setIsFinished(true);
-
-    // ✅ CRÍTICO: Guardar SOLO en modo examen
-    if (mode === 'exam') {
-      try {
-        await resultsService.save(examResults);
-        console.log('✅ Resultados guardados en base de datos');
-      } catch (saveError) {
-        console.error('Error guardando resultados:', saveError);
+    try {
+      // Detener timer
+      setTimerRunning(false);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
       }
-    } else {
-      console.log('ℹ️ Modo práctica - No se guarda en base de datos');
-    }
+      
+      const endTime = new Date();
+      const timeSpent = startTime.current 
+        ? Math.floor((endTime - startTime.current) / 1000)
+        : 0;
 
-    hasUnsavedChanges.current = false;
-    
-    return examResults;
-  } catch (err) {
-    console.error('Error finalizando examen:', err);
-    throw err;
-  }
-}, [questions, answers, reviewedQuestions, config, subjectId, mode]);
+      const calculatedResults = calculateResults(questions, answers);
+      
+      const examResults = {
+        subjectId,
+        subjectName: config?.name || 'Materia',
+        mode,
+        ...calculatedResults,
+        passed: calculatedResults.score >= (config?.settings.passingScore || 70),
+        passingScore: config?.settings.passingScore || 70,
+        timeSpent,
+        startedAt: startTime.current?.toISOString(),
+        completedAt: endTime.toISOString(),
+        answers,
+        reviewedQuestions: Array.from(reviewedQuestions),
+        questions
+      };
+
+      setResults(examResults);
+      setIsFinished(true);
+
+      // ✅ Guardar resultado final en modo examen
+      if (mode === 'exam') {
+        try {
+          await resultsService.save(examResults);
+          console.log('✅ Resultados guardados en base de datos');
+          
+          // ✅ NUEVO: Limpiar sesión de IndexedDB después de finalizar
+          await dbManager.deleteExamSession(sessionId.current);
+          console.log('🗑️ Sesión limpiada de IndexedDB');
+        } catch (saveError) {
+          console.error('Error guardando resultados:', saveError);
+        }
+      } else {
+        console.log('ℹ️ Modo práctica - No se guarda en base de datos');
+        // Limpiar también en modo práctica
+        await dbManager.deleteExamSession(sessionId.current);
+        console.log('🗑️ Sesión limpiada de IndexedDB');
+      }
+
+      hasUnsavedChanges.current = false;
+      
+      return examResults;
+    } catch (err) {
+      console.error('Error finalizando examen:', err);
+      throw err;
+    }
+  }, [questions, answers, reviewedQuestions, config, subjectId, mode]);
 
   /**
    * Reiniciar examen
@@ -229,6 +320,7 @@ export function useExam(subjectId, mode = 'exam') {
     setResults(null);
     startTime.current = new Date();
     hasUnsavedChanges.current = false;
+    // ✅ NO cambiar sessionId para mantener persistencia
     
     loadExam();
   }, [loadExam]);
@@ -283,6 +375,12 @@ export function useExam(subjectId, mode = 'exam') {
     isCurrentReviewed,
     canGoNext: currentIndex < questions.length - 1,
     canGoPrevious: currentIndex > 0,
+    // ✅ NUEVO: Estados de autosave
+    saveStatus,
+    isSaving,
+    isSaved,
+    forceSave,
+    // Acciones
     selectAnswer,
     nextQuestion,
     previousQuestion,
