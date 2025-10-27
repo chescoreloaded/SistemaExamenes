@@ -1,36 +1,67 @@
-import { lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { Loading } from '@/components/common';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
+import { PageTransition } from './components/common/PageTransition';
 
-// ✅ Lazy loading de todas las páginas
-const Home = lazy(() => import('@/pages/Home'));
-const ExamMode = lazy(() => import('@/pages/ExamMode'));
-const Results = lazy(() => import('@/pages/Results'));
-const StudyMode = lazy(() => import('@/pages/StudyMode'));
-const ReviewMode = lazy(() => import('@/pages/ReviewMode'));
+// ✅ PASO 1: Importar el Proveedor de Sonido
+import { SoundProvider } from './context/SoundContext';
 
-// Componente de fallback mejorado
-function PageLoader() {
+// Pages
+import Home from './pages/Home';
+import ExamMode from './pages/ExamMode';
+import StudyMode from './pages/StudyMode';
+import Results from './pages/Results';
+import ReviewMode from './pages/ReviewMode';
+
+// Wrapper interno para usar useLocation
+function AnimatedRoutes() {
+  const location = useLocation();
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50">
-      <Loading text="Cargando..." />
-    </div>
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/" element={
+          <PageTransition type="fade">
+            <Home />
+          </PageTransition>
+        } />
+        
+        <Route path="/exam/:subjectId" element={
+          <PageTransition type="slideLeft">
+            <ExamMode />
+          </PageTransition>
+        } />
+        
+        {/* ✅ NUEVA RUTA: Modo Estudio */}
+        <Route path="/study/:subjectId" element={
+          <PageTransition type="slideLeft">
+            <StudyMode />
+          </PageTransition>
+        } />
+        
+        <Route path="/results/:subjectId" element={
+          <PageTransition type="scale">
+            <Results />
+          </PageTransition>
+        } />
+
+        <Route path="/review/:subjectId" element={
+          <PageTransition type="slideUp">
+            <ReviewMode />
+          </PageTransition>
+        } />
+      </Routes>
+    </AnimatePresence>
   );
 }
 
 function App() {
   return (
-    <Router>
-      <Suspense fallback={<PageLoader />}>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/exam/:subjectId" element={<ExamMode />} />
-          <Route path="/results/:subjectId" element={<Results />} />
-          <Route path="/review/:subjectId" element={<ReviewMode />} />
-          <Route path="/study/:subjectId" element={<StudyMode />} />
-        </Routes>
-      </Suspense>
-    </Router>
+    // ✅ PASO 2: Envolver la aplicación con el Proveedor
+    <SoundProvider>
+      <Router>
+        <AnimatedRoutes />
+      </Router>
+    </SoundProvider>
   );
 }
 

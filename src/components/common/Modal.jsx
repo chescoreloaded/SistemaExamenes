@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // ✅ Componente memoizado
-export const Modal = memo(function Modal({ 
+export  const Modal = memo(function Modal({ 
   isOpen, 
   onClose, 
   title, 
@@ -113,3 +113,6 @@ Modal.propTypes = {
 };
 
 Modal.displayName = 'Modal';
+
+
+export default Modal;

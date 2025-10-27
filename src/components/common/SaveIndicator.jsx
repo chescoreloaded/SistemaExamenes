@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 /**
  * Indicador visual del estado de guardado
  */
-export function SaveIndicator({ 
+export  function SaveIndicator({ 
   status = 'idle', 
   lastSaved = null,
   className = '' 
@@ -104,3 +104,5 @@ SaveIndicator.propTypes = {
   lastSaved: PropTypes.instanceOf(Date),
   className: PropTypes.string
 };
+
+export default SaveIndicator;

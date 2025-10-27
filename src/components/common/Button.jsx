@@ -56,3 +56,5 @@ Button.propTypes = {
   className: PropTypes.string,
   type: PropTypes.string
 };
+
+export default Button;

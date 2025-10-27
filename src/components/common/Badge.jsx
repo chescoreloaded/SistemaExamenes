@@ -27,3 +27,5 @@ Badge.propTypes = {
   variant: PropTypes.oneOf(['default', 'primary', 'success', 'danger', 'warning', 'info']),
   className: PropTypes.string
 };
+
+export default Badge;

@@ -55,3 +55,5 @@ ProgressBar.propTypes = {
   variant: PropTypes.oneOf(['default', 'success', 'warning', 'danger']),
   height: PropTypes.oneOf(['sm', 'md', 'lg', 'xl'])
 };
+
+export default ProgressBar;

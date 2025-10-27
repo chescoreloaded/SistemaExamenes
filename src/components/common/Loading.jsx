@@ -74,3 +74,5 @@ Loading.propTypes = {
   fullScreen: PropTypes.bool,
   text: PropTypes.string
 };
+
+export default Loading;

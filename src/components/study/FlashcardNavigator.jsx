@@ -31,14 +31,14 @@ export const FlashcardNavigator = memo(function FlashcardNavigator({
   const getStatusStyles = (status) => {
     switch (status) {
       case 'current':
-        return 'bg-gradient-to-br from-indigo-500 to-purple-500 text-white ring-4 ring-indigo-300 scale-110 shadow-lg';
+        return 'bg-gradient-to-br from-indigo-500 to-purple-500 text-white ring-4 ring-indigo-300 dark:ring-indigo-600 scale-110 shadow-lg';
       case 'marked':
         return 'bg-gradient-to-br from-yellow-400 to-orange-400 text-white hover:scale-105 shadow-md';
       case 'studied':
-        return 'bg-gradient-to-br from-green-100 to-emerald-100 text-green-800 hover:bg-green-200 hover:scale-105';
+        return 'bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/40 dark:to-emerald-900/40 text-green-800 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-800/50 hover:scale-105';
       case 'unstudied':
       default:
-        return 'bg-white text-gray-700 hover:bg-gray-100 hover:scale-105 border-2 border-gray-300';
+        return 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 hover:scale-105 border-2 border-gray-300 dark:border-gray-600';
     }
   };
 
@@ -57,12 +57,12 @@ export const FlashcardNavigator = memo(function FlashcardNavigator({
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-xl p-4 border-2 border-indigo-200">
-      <div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-indigo-100">
-        <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-4 border-2 border-indigo-200 dark:border-indigo-700 transition-colors duration-300">
+      <div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-indigo-100 dark:border-indigo-800">
+        <h3 className="text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2">
           🗂️ Navegación de Tarjetas
         </h3>
-        <span className="text-xs text-gray-500 bg-indigo-100 px-2 py-1 rounded-full">
+        <span className="text-xs text-gray-500 dark:text-gray-400 bg-indigo-100 dark:bg-indigo-900/30 px-2 py-1 rounded-full">
           {studiedCards.size} / {cards.length}
         </span>
       </div>
@@ -96,22 +96,22 @@ export const FlashcardNavigator = memo(function FlashcardNavigator({
       </div>
 
       {/* Leyenda */}
-      <div className="mt-4 pt-3 border-t-2 border-indigo-100 space-y-1 text-xs">
+      <div className="mt-4 pt-3 border-t-2 border-indigo-100 dark:border-indigo-800 space-y-1 text-xs">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded bg-gradient-to-br from-indigo-500 to-purple-500" />
-          <span className="text-gray-600">Tarjeta actual</span>
+          <span className="text-gray-600 dark:text-gray-400">Tarjeta actual</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded bg-gradient-to-br from-green-100 to-emerald-100 border-2 border-green-300" />
-          <span className="text-gray-600">Estudiada</span>
+          <div className="w-6 h-6 rounded bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/40 dark:to-emerald-900/40 border-2 border-green-300 dark:border-green-600" />
+          <span className="text-gray-600 dark:text-gray-400">Estudiada</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded bg-gradient-to-br from-yellow-400 to-orange-400" />
-          <span className="text-gray-600">Marcada</span>
+          <span className="text-gray-600 dark:text-gray-400">Marcada</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded bg-white border-2 border-gray-300" />
-          <span className="text-gray-600">Sin estudiar</span>
+          <div className="w-6 h-6 rounded bg-white dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-600" />
+          <span className="text-gray-600 dark:text-gray-400">Sin estudiar</span>
         </div>
       </div>
     </div>

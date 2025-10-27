@@ -22,3 +22,5 @@ Card.propTypes = {
   className: PropTypes.string,
   hover: PropTypes.bool
 };
+
+export default Card;

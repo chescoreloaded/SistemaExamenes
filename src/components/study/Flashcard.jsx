@@ -4,8 +4,8 @@ import PropTypes from 'prop-types';
 export default function Flashcard({ card, isFlipped, onFlip }) {
   if (!card) {
     return (
-      <div className="w-full max-w-2xl h-96 bg-gray-100 rounded-2xl shadow-xl flex items-center justify-center">
-        <p className="text-gray-400 text-lg">No hay tarjeta para mostrar</p>
+      <div className="w-full max-w-2xl h-96 bg-gray-100 dark:bg-gray-800 rounded-2xl shadow-xl flex items-center justify-center transition-colors duration-300">
+        <p className="text-gray-400 dark:text-gray-500 text-lg">No hay tarjeta para mostrar</p>
       </div>
     );
   }
@@ -35,7 +35,7 @@ export default function Flashcard({ card, isFlipped, onFlip }) {
       >
         {/* FRONT - Pregunta */}
         <div 
-          className="absolute w-full h-full bg-white rounded-2xl shadow-2xl p-8 flex flex-col items-center justify-center border-4 border-indigo-100"
+          className="absolute w-full h-full bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 flex flex-col items-center justify-center border-4 border-indigo-100 dark:border-indigo-900/50 transition-colors duration-300"
           style={{ 
             backfaceVisibility: 'hidden',
             WebkitBackfaceVisibility: 'hidden'
@@ -44,10 +44,10 @@ export default function Flashcard({ card, isFlipped, onFlip }) {
           <div className="text-7xl mb-6 animate-bounce">
             {card.front?.emoji || '📚'}
           </div>
-          <h2 className="text-3xl font-bold text-gray-800 text-center">
+          <h2 className="text-3xl font-bold text-gray-800 dark:text-white text-center">
             {card.front?.text || 'Sin texto'}
           </h2>
-          <p className="text-sm text-gray-400 mt-8">
+          <p className="text-sm text-gray-400 dark:text-gray-500 mt-8">
             💡 Click para ver la respuesta
           </p>
         </div>

@@ -93,3 +93,5 @@ ExamHeader.propTypes = {
   totalQuestions: PropTypes.number.isRequired,
   progress: PropTypes.number.isRequired
 };
+
+export default ExamHeader;

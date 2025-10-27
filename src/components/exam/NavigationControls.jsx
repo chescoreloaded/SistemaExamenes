@@ -1,4 +1,5 @@
 import { Button } from '../common/Button';
+import PropTypes from 'prop-types';
 
 export function NavigationControls({ 
   onPrevious,
@@ -9,10 +10,11 @@ export function NavigationControls({
   canGoNext,
   isReviewed,
   answeredCount,
-  totalQuestions
+  totalQuestions,
+  mode
 }) {
   return (
-    <div className="bg-white border-t border-gray-200 sticky bottom-0 shadow-lg">
+    <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 sticky bottom-0 shadow-lg transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 py-4">
         <div className="flex items-center justify-between gap-4">
           {/* Previous button */}
@@ -20,12 +22,11 @@ export function NavigationControls({
             variant="outline"
             onClick={onPrevious}
             disabled={!canGoPrevious}
-            icon={
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            }
+            className="flex items-center gap-2"
           >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
             Anterior
           </Button>
 
@@ -33,8 +34,9 @@ export function NavigationControls({
           <Button
             variant={isReviewed ? 'warning' : 'ghost'}
             onClick={onToggleReview}
-            icon="📌"
+            className="flex items-center gap-2"
           >
+            <span className="text-lg">📌</span>
             {isReviewed ? 'Marcada' : 'Marcar para revisar'}
           </Button>
 
@@ -43,21 +45,21 @@ export function NavigationControls({
             <Button
               variant="primary"
               onClick={onNext}
-              icon={
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              }
+              className="flex items-center gap-2"
             >
               Siguiente
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
             </Button>
           ) : (
             <Button
               variant="success"
               onClick={onFinish}
-              icon="✓"
               size="lg"
+              className="flex items-center gap-2"
             >
+              <span className="text-lg">✓</span>
               Finalizar {answeredCount < totalQuestions && `(${totalQuestions - answeredCount} sin responder)`}
             </Button>
           )}
@@ -66,3 +68,18 @@ export function NavigationControls({
     </div>
   );
 }
+
+NavigationControls.propTypes = {
+  onPrevious: PropTypes.func.isRequired,
+  onNext: PropTypes.func.isRequired,
+  onToggleReview: PropTypes.func.isRequired,
+  onFinish: PropTypes.func.isRequired,
+  canGoPrevious: PropTypes.bool.isRequired,
+  canGoNext: PropTypes.bool.isRequired,
+  isReviewed: PropTypes.bool.isRequired,
+  answeredCount: PropTypes.number.isRequired,
+  totalQuestions: PropTypes.number.isRequired,
+  mode: PropTypes.string
+};
+
+export default NavigationControls;

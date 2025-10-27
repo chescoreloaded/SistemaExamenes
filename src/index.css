@@ -16,12 +16,17 @@
   --text-secondary: #64748b;
   
   --border-color: #e2e8f0;
+
+  --transition-bg: background-color 200ms ease;
+  --transition-color: color 200ms ease;
+  --transition-border: border-color 200ms ease;
 }
 
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  transition: var(--transition-bg), var(--transition-color), var(--transition-border);
 }
 
 body {
