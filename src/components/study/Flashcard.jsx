@@ -10,6 +10,19 @@ export default function Flashcard({ card, isFlipped, onFlip }) {
     );
   }
 
+  // Función auxiliar para formatear dificultad (podemos moverla a un utility si se usa mucho)
+  const getDifficultyLabel = (difficulty) => {
+    switch(difficulty) {
+      case 'basic': return '⭐ Básico'; // Ajustado a los valores ENUM de DB si son en inglés
+      case 'intermediate': return '⭐⭐ Intermedio';
+      case 'advanced': return '⭐⭐⭐ Avanzado';
+      case 'basico': return '⭐ Básico'; // Mantener compatibilidad por si acaso
+      case 'intermedio': return '⭐⭐ Intermedio';
+      case 'avanzado': return '⭐⭐⭐ Avanzado';
+      default: return '⭐ Normal';
+    }
+  };
+
   return (
     <div 
       className="w-full max-w-2xl h-96 cursor-pointer"
@@ -17,10 +30,9 @@ export default function Flashcard({ card, isFlipped, onFlip }) {
       style={{ perspective: '1000px' }}
     >
       <motion.div
-        // ✅ Key único fuerza remount cuando cambia la tarjeta
-        key={card.front?.text || card.id}
+        // ✅ Key único usando la nueva propiedad plana
+        key={card.front || card.id}
         className="relative w-full h-full"
-        // ✅ SIEMPRE inicia en 0 (mostrando frente)
         initial={{ rotateY: 0 }}
         animate={{ rotateY: isFlipped ? 180 : 0 }}
         transition={{ 
@@ -42,10 +54,12 @@ export default function Flashcard({ card, isFlipped, onFlip }) {
           }}
         >
           <div className="text-7xl mb-6 animate-bounce">
-            {card.front?.emoji || '📚'}
+            {/* ✅ CORREGIDO: Usar propiedad plana */}
+            {card.front_emoji || '📚'}
           </div>
           <h2 className="text-3xl font-bold text-gray-800 dark:text-white text-center">
-            {card.front?.text || 'Sin texto'}
+            {/* ✅ CORREGIDO: Usar propiedad plana */}
+            {card.front || 'Sin texto'}
           </h2>
           <p className="text-sm text-gray-400 dark:text-gray-500 mt-8">
             💡 Click para ver la respuesta
@@ -64,31 +78,37 @@ export default function Flashcard({ card, isFlipped, onFlip }) {
           <div>
             <div className="flex items-center justify-between mb-4">
               <span className="text-sm px-3 py-1 bg-white/20 rounded-full">
-                {card.difficulty === 'basico' ? '⭐ Básico' : 
-                 card.difficulty === 'intermedio' ? '⭐⭐ Intermedio' : 
-                 '⭐⭐⭐ Avanzado'}
+                {getDifficultyLabel(card.difficulty)}
               </span>
-              <span className="text-xs opacity-75">
-                {card.tags?.slice(0, 2).join(', ')}
-              </span>
+              {/* Si ya no usas tags, puedes quitar esto o adaptarlo si vienen de categories
+              {card.category_id && (
+                 <span className="text-xs opacity-75 bg-black/20 px-2 py-1 rounded">
+                   {card.category_id}
+                 </span>
+              )} */}
             </div>
 
             <h3 className="text-2xl font-bold mb-4 leading-tight">
-              {card.back?.answer || 'Sin respuesta'}
+              {/* ✅ CORREGIDO: Usar propiedad plana */}
+              {card.back || 'Sin respuesta'}
             </h3>
             
-            <div className="bg-white/10 rounded-lg p-4 mb-4">
-              <p className="text-sm leading-relaxed opacity-95">
-                {card.back?.explanation || 'Sin explicación'}
-              </p>
-            </div>
+            {/* ✅ CORREGIDO: Usar propiedad plana */}
+            {card.back_explanation && (
+              <div className="bg-white/10 rounded-lg p-4 mb-4">
+                <p className="text-sm leading-relaxed opacity-95">
+                  {card.back_explanation}
+                </p>
+              </div>
+            )}
           </div>
 
-          {card.back?.mnemonic && (
+          {/* ✅ CORREGIDO: Usar propiedad plana */}
+          {card.back_mnemonic && (
             <div className="bg-yellow-400/20 rounded-lg p-4 mt-auto">
               <p className="text-sm italic flex items-start">
                 <span className="text-xl mr-2">💡</span>
-                <span className="flex-1">{card.back.mnemonic}</span>
+                <span className="flex-1">{card.back_mnemonic}</span>
               </p>
             </div>
           )}
@@ -104,18 +124,15 @@ export default function Flashcard({ card, isFlipped, onFlip }) {
 
 Flashcard.propTypes = {
   card: PropTypes.shape({
-    id: PropTypes.string,
-    front: PropTypes.shape({
-      text: PropTypes.string.isRequired,
-      emoji: PropTypes.string.isRequired
-    }),
-    back: PropTypes.shape({
-      answer: PropTypes.string.isRequired,
-      explanation: PropTypes.string.isRequired,
-      mnemonic: PropTypes.string
-    }),
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    // ✅ Nuevas props planas
+    front: PropTypes.string,
+    front_emoji: PropTypes.string,
+    back: PropTypes.string,
+    back_explanation: PropTypes.string,
+    back_mnemonic: PropTypes.string,
     difficulty: PropTypes.string,
-    tags: PropTypes.arrayOf(PropTypes.string)
+    category_id: PropTypes.string
   }),
   isFlipped: PropTypes.bool.isRequired,
   onFlip: PropTypes.func.isRequired

@@ -1,8 +1,8 @@
 import { memo } from 'react';
 import { motion } from 'framer-motion';
 import PropTypes from 'prop-types';
+import { useLanguage } from '@/context/LanguageContext';
 
-// ✅ Componente memoizado con dark mode
 export const QuestionNavigator = memo(function QuestionNavigator({
   questions,
   currentIndex,
@@ -10,6 +10,8 @@ export const QuestionNavigator = memo(function QuestionNavigator({
   reviewedQuestions,
   onGoToQuestion
 }) {
+  const { t } = useLanguage();
+
   if (!questions || questions.length === 0) return null;
 
   const getQuestionStatus = (question, index) => {
@@ -61,7 +63,7 @@ export const QuestionNavigator = memo(function QuestionNavigator({
     <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-4 border-2 border-gray-200 dark:border-gray-700 transition-colors duration-300">
       <div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-gray-100 dark:border-gray-700">
         <h3 className="text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2">
-          🗂️ Navegador
+          🗂️ {t('exam.ui.navigator')}
         </h3>
         <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">
           {Object.keys(answers).length} / {questions.length}
@@ -96,29 +98,27 @@ export const QuestionNavigator = memo(function QuestionNavigator({
         })}
       </div>
 
-      {/* Leyenda */}
       <div className="mt-4 pt-3 border-t-2 border-gray-100 dark:border-gray-700 space-y-1 text-xs">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded bg-gradient-to-br from-indigo-500 to-purple-500" />
-          <span className="text-gray-600 dark:text-gray-400">Actual</span>
+          <span className="text-gray-600 dark:text-gray-400">{t('exam.ui.legend.current')}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/40 dark:to-emerald-900/40 border-2 border-green-300 dark:border-green-600" />
-          <span className="text-gray-600 dark:text-gray-400">Respondida</span>
+          <span className="text-gray-600 dark:text-gray-400">{t('exam.ui.legend.answered')}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded bg-gradient-to-br from-yellow-400 to-orange-400" />
-          <span className="text-gray-600 dark:text-gray-400">Marcada</span>
+          <span className="text-gray-600 dark:text-gray-400">{t('exam.ui.legend.marked')}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded bg-white dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-600" />
-          <span className="text-gray-600 dark:text-gray-400">Sin responder</span>
+          <span className="text-gray-600 dark:text-gray-400">{t('exam.ui.legend.unanswered')}</span>
         </div>
       </div>
     </div>
   );
 }, (prevProps, nextProps) => {
-  // ✅ Custom comparison
   return (
     prevProps.currentIndex === nextProps.currentIndex &&
     prevProps.questions.length === nextProps.questions.length &&

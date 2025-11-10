@@ -132,6 +132,21 @@ class IndexedDBManager {
   }
 
   /**
+   * Obtener todas las sesiones de examen (para Analytics)
+   */
+  async getAllExamSessions() {
+    await this.ensureDB();
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction([STORE_EXAM_SESSIONS], 'readonly');
+      const store = transaction.objectStore(STORE_EXAM_SESSIONS);
+      const request = store.getAll();
+
+      request.onsuccess = () => resolve(request.result || []);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  /**
    * Obtener sesiones no sincronizadas
    */
   async getUnsyncedExamSessions() {

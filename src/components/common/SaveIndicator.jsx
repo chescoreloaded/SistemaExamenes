@@ -3,8 +3,9 @@ import PropTypes from 'prop-types';
 
 /**
  * Indicador visual del estado de guardado
+ * ✅ ACTUALIZADO: Dark mode completo + transiciones suaves
  */
-export  function SaveIndicator({ 
+export function SaveIndicator({ 
   status = 'idle', 
   lastSaved = null,
   className = '' 
@@ -19,8 +20,9 @@ export  function SaveIndicator({
             </svg>
           ),
           text: 'Guardando...',
-          color: 'text-blue-600',
-          bg: 'bg-blue-100',
+          color: 'text-blue-600 dark:text-blue-400',
+          bg: 'bg-blue-100 dark:bg-blue-900/30',
+          border: 'border-blue-200 dark:border-blue-800',
           show: true
         };
       case 'saved':
@@ -31,8 +33,9 @@ export  function SaveIndicator({
             </svg>
           ),
           text: 'Guardado',
-          color: 'text-green-600',
-          bg: 'bg-green-100',
+          color: 'text-green-600 dark:text-green-400',
+          bg: 'bg-green-100 dark:bg-green-900/30',
+          border: 'border-green-200 dark:border-green-800',
           show: true
         };
       case 'error':
@@ -43,8 +46,9 @@ export  function SaveIndicator({
             </svg>
           ),
           text: 'Error al guardar',
-          color: 'text-red-600',
-          bg: 'bg-red-100',
+          color: 'text-red-600 dark:text-red-400',
+          bg: 'bg-red-100 dark:bg-red-900/30',
+          border: 'border-red-200 dark:border-red-800',
           show: true
         };
       default:
@@ -61,7 +65,11 @@ export  function SaveIndicator({
   return (
     <AnimatePresence>
       <motion.div
-        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${config.bg} ${className}`}
+        className={`
+          flex items-center gap-2 px-3 py-1.5 rounded-lg border
+          ${config.bg} ${config.border} ${className}
+          transition-colors duration-300
+        `}
         initial={{ opacity: 0, y: -10, scale: 0.9 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: -10, scale: 0.9 }}
@@ -82,7 +90,7 @@ export  function SaveIndicator({
           {config.text}
         </span>
         {lastSaved && status === 'saved' && (
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-gray-500 dark:text-gray-400 transition-colors duration-300">
             {formatLastSaved(lastSaved)}
           </span>
         )}

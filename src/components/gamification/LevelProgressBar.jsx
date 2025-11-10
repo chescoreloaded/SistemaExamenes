@@ -1,9 +1,7 @@
 import { motion } from 'framer-motion';
 import PropTypes from 'prop-types';
+import { useLanguage } from '@/context/LanguageContext'; // ✅ Import hook
 
-/**
- * Barra de progreso de nivel con animaciones
- */
 export function LevelProgressBar({ 
   level, 
   currentLevelXP, 
@@ -14,40 +12,26 @@ export function LevelProgressBar({
   showDetails = true,
   compact = false
 }) {
+  const { t } = useLanguage(); // ✅ Usar hook
   const progressPercentage = (currentLevelXP / xpForNextLevel) * 100;
 
   if (compact) {
     return (
       <div className="flex items-center gap-3">
-        {/* Nivel */}
-        <div className={`
-          flex items-center justify-center
-          w-12 h-12 rounded-full
-          bg-gradient-to-br from-indigo-500 to-purple-600
-          text-white font-bold text-lg
-          shadow-lg
-        `}>
+        <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold text-lg shadow-lg">
           {level}
         </div>
-
-        {/* Barra compacta */}
         <div className="flex-1">
-          <div className="h-3 bg-gray-200 rounded-full overflow-hidden shadow-inner">
+          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden shadow-inner">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${progressPercentage}%` }}
-              transition={{ 
-                duration: 1,
-                ease: "easeOut",
-                delay: 0.2
-              }}
+              transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
               className="h-full bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full"
             />
           </div>
         </div>
-
-        {/* XP texto */}
-        <div className="text-sm font-medium text-gray-600 whitespace-nowrap">
+        <div className="text-sm font-medium text-gray-600 dark:text-gray-300 whitespace-nowrap">
           {currentLevelXP} / {xpForNextLevel} XP
         </div>
       </div>
@@ -55,46 +39,22 @@ export function LevelProgressBar({
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 border-2 border-gray-100">
-      {/* Header con nivel y título */}
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-2 border-gray-100 dark:border-gray-700">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          {/* Badge de nivel */}
           <motion.div
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
-            transition={{ 
-              type: "spring",
-              stiffness: 200,
-              damping: 15
-            }}
-            className={`
-              relative flex items-center justify-center
-              w-16 h-16 rounded-full
-              bg-gradient-to-br from-indigo-500 to-purple-600
-              text-white font-bold text-2xl
-              shadow-xl
-              border-4 border-white
-            `}
+            transition={{ type: "spring", stiffness: 200, damping: 15 }}
+            className="relative flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold text-2xl shadow-xl border-4 border-white dark:border-gray-800"
           >
             {level}
-            
-            {/* Efecto de brillo */}
             <motion.div
               className="absolute inset-0 rounded-full bg-white"
-              animate={{
-                opacity: [0, 0.3, 0],
-                scale: [0.8, 1.2, 0.8]
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
+              animate={{ opacity: [0, 0.3, 0], scale: [0.8, 1.2, 0.8] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             />
           </motion.div>
-
-          {/* Título e icono */}
           <div>
             <motion.div
               initial={{ opacity: 0, x: -20 }}
@@ -111,14 +71,13 @@ export function LevelProgressBar({
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
-              className="text-sm text-gray-500"
+              className="text-sm text-gray-500 dark:text-gray-400"
             >
-              Nivel {level}
+              {t('gamification.level.level')} {level} {/* ✅ Traducido */}
             </motion.p>
           </div>
         </div>
 
-        {/* Nivel siguiente */}
         {showDetails && (
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
@@ -126,15 +85,13 @@ export function LevelProgressBar({
             transition={{ delay: 0.4 }}
             className="text-right"
           >
-            <div className="text-xs text-gray-500">Próximo nivel</div>
-            <div className="text-2xl font-bold text-gray-700">{level + 1}</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400">{t('gamification.level.nextLevel')}</div> {/* ✅ Traducido */}
+            <div className="text-2xl font-bold text-gray-700 dark:text-white">{level + 1}</div>
           </motion.div>
         )}
       </div>
 
-      {/* Barra de progreso */}
       <div className="space-y-2">
-        {/* Texto de progreso */}
         {showDetails && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -142,50 +99,32 @@ export function LevelProgressBar({
             transition={{ delay: 0.5 }}
             className="flex items-center justify-between text-sm"
           >
-            <span className="text-gray-600 font-medium">
-              Progreso al siguiente nivel
+            <span className="text-gray-600 dark:text-gray-400 font-medium">
+              {t('gamification.level.progress')} {/* ✅ Traducido */}
             </span>
-            <span className="font-bold text-indigo-600">
+            <span className="font-bold text-indigo-600 dark:text-indigo-400">
               {Math.round(progressPercentage)}%
             </span>
           </motion.div>
         )}
 
-        {/* Barra */}
-        <div className="relative h-6 bg-gray-200 rounded-full overflow-hidden shadow-inner">
-          {/* Fondo con patrón */}
+        <div className="relative h-6 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden shadow-inner">
           <div className="absolute inset-0 opacity-10">
             <div className="w-full h-full bg-gradient-to-r from-transparent via-white to-transparent" />
           </div>
-
-          {/* Progreso */}
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${progressPercentage}%` }}
-            transition={{ 
-              duration: 1.5,
-              ease: "easeOut",
-              delay: 0.3
-            }}
+            transition={{ duration: 1.5, ease: "easeOut", delay: 0.3 }}
             className="relative h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 rounded-full"
           >
-            {/* Brillo animado */}
             <motion.div
               className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent"
-              animate={{
-                x: ['-100%', '200%']
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut",
-                repeatDelay: 1
-              }}
+              animate={{ x: ['-100%', '200%'] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", repeatDelay: 1 }}
               style={{ opacity: 0.3 }}
             />
           </motion.div>
-
-          {/* Texto de XP dentro de la barra */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -198,17 +137,16 @@ export function LevelProgressBar({
           </motion.div>
         </div>
 
-        {/* XP faltante */}
         {showDetails && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7 }}
-            className="text-center text-xs text-gray-500"
+            className="text-center text-xs text-gray-500 dark:text-gray-400"
           >
-            Faltan <span className="font-semibold text-indigo-600">
+            {t('gamification.level.remaining')} <span className="font-semibold text-indigo-600 dark:text-indigo-400">
               {(xpForNextLevel - currentLevelXP).toLocaleString()} XP
-            </span> para el siguiente nivel
+            </span> {t('gamification.level.forNext')} {/* ✅ Traducido */}
           </motion.div>
         )}
       </div>

@@ -2,6 +2,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSoundContext } from '@/context/SoundContext';
+import { useLanguage } from '@/context/LanguageContext'; // ✅ Import hook
 
 export function FeedbackCard({ 
   question,
@@ -15,36 +17,40 @@ export function FeedbackCard({
 }) {
   const navigate = useNavigate();
   const [showExplanation, setShowExplanation] = useState(false);
+  const { playCorrect, playIncorrect, playClick } = useSoundContext();
+  const { t } = useLanguage(); // ✅ Usar hook
 
-  // Auto-show confetti on correct answer
   useEffect(() => {
-    if (isCorrect && showConfetti) {
-      showConfetti();
+    if (isCorrect) {
+      playCorrect();
+      if (showConfetti) showConfetti();
+    } else {
+      playIncorrect();
     }
-  }, [isCorrect, showConfetti]);
+  }, [isCorrect, showConfetti, playCorrect, playIncorrect]);
 
-  const handleFlashcardClick = () => {
-    if (relatedFlashcard) {
-      navigate(`/study/${relatedFlashcard.subjectId}`);
-    }
+  const handleToggleExplanation = () => {
+    playClick();
+    setShowExplanation(!showExplanation);
+  };
+
+  const handleClose = () => {
+    playClick();
+    onClose();
   };
 
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ opacity: 0, scale: 0.8, y: 50 }}
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.8, y: 50 }}
-        transition={{ 
-          type: "spring",
-          stiffness: 300,
-          damping: 25
-        }}
+        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+        transition={{ type: "spring", damping: 25, stiffness: 300 }}
         className={`
           relative w-full max-w-2xl mx-auto rounded-2xl shadow-2xl overflow-hidden
           ${isCorrect 
-            ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-4 border-green-400' 
-            : 'bg-gradient-to-br from-red-50 to-pink-50 border-4 border-red-400'
+            ? 'bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-4 border-green-500 dark:border-green-600' 
+            : 'bg-gradient-to-br from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20 border-4 border-red-500 dark:border-red-600'
           }
         `}
       >
@@ -52,105 +58,84 @@ export function FeedbackCard({
         <div className={`
           p-6 text-white text-center
           ${isCorrect 
-            ? 'bg-gradient-to-r from-green-500 to-emerald-500' 
-            : 'bg-gradient-to-r from-red-500 to-pink-500'
+            ? 'bg-gradient-to-r from-green-500 to-emerald-600' 
+            : 'bg-gradient-to-r from-red-500 to-pink-600'
           }
         `}>
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{ 
-              delay: 0.2,
-              type: "spring",
-              stiffness: 200
-            }}
-            className="text-6xl mb-2"
+            className="flex justify-center mb-2"
           >
-            {isCorrect ? '✓' : '✗'}
+            {isCorrect ? (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-20 w-20 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-20 w-20 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            )}
           </motion.div>
-          <motion.h3
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="text-2xl font-bold"
-          >
-            {isCorrect ? '¡Correcto!' : 'Incorrecto'}
-          </motion.h3>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            className="text-sm opacity-90 mt-1"
-          >
-            {isCorrect 
-              ? '¡Excelente trabajo! 🎉' 
-              : 'No te preocupes, sigue practicando 💪'
-            }
-          </motion.p>
+          <h3 className="text-3xl font-bold mb-2">
+            {isCorrect ? t('exam.feedback.correct.title') : t('exam.feedback.incorrect.title')} {/* ✅ Traducido */}
+          </h3>
+          <p className="text-white/90 text-lg">
+            {isCorrect ? t('exam.feedback.correct.subtitle') : t('exam.feedback.incorrect.subtitle')} {/* ✅ Traducido */}
+          </p>
         </div>
 
         {/* Contenido */}
-        <div className="p-6 space-y-4">
+        <div className="p-6 space-y-4 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm">
           {/* Pregunta */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.5 }}
-            className="bg-white rounded-lg p-4 shadow-md"
-          >
-            <h4 className="text-sm font-semibold text-gray-500 mb-2">Pregunta:</h4>
-            <p className="text-gray-800">{question}</p>
-          </motion.div>
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+            <h4 className="text-sm font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">
+              {t('exam.feedback.labels.question')} {/* ✅ Traducido */}
+            </h4>
+            <p className="text-gray-900 dark:text-white text-lg font-medium leading-relaxed">
+              {question || 'Texto de la pregunta no disponible'}
+            </p>
+          </div>
 
           {/* Tu respuesta (si incorrecta) */}
           {!isCorrect && (
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.6 }}
-              className="bg-red-100 border-2 border-red-300 rounded-lg p-4"
-            >
-              <h4 className="text-sm font-semibold text-red-700 mb-2">Tu respuesta:</h4>
-              <p className="text-red-900">{userAnswer}</p>
-            </motion.div>
+            <div className="bg-red-100 dark:bg-red-900/30 border-l-4 border-red-500 rounded-r-xl p-4">
+              <h4 className="text-sm font-bold text-red-700 dark:text-red-400 mb-1">
+                {t('exam.feedback.labels.yourAnswer')} {/* ✅ Traducido */}
+              </h4>
+              <p className="text-red-900 dark:text-red-200 font-medium">
+                {userAnswer}
+              </p>
+            </div>
           )}
 
           {/* Respuesta correcta */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: isCorrect ? 0.6 : 0.7 }}
-            className="bg-green-100 border-2 border-green-300 rounded-lg p-4"
-          >
-            <h4 className="text-sm font-semibold text-green-700 mb-2">
-              {isCorrect ? 'Tu respuesta:' : 'Respuesta correcta:'}
+          <div className="bg-green-100 dark:bg-green-900/30 border-l-4 border-green-500 rounded-r-xl p-4">
+            <h4 className="text-sm font-bold text-green-700 dark:text-green-400 mb-1">
+              {isCorrect ? t('exam.feedback.labels.yourCorrectAnswer') : t('exam.feedback.labels.correctAnswer')} {/* ✅ Traducido */}
             </h4>
-            <p className="text-green-900 font-medium">{correctAnswer}</p>
-          </motion.div>
+            <p className="text-green-900 dark:text-green-200 font-medium">
+              {correctAnswer}
+            </p>
+          </div>
 
-          {/* Explicación (expandible) */}
+          {/* Explicación */}
           {explanation && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8 }}
-            >
+            <div className="mt-4">
               <button
-                onClick={() => setShowExplanation(!showExplanation)}
-                className="w-full bg-indigo-100 hover:bg-indigo-200 rounded-lg p-4 text-left transition-colors"
+                onClick={handleToggleExplanation}
+                className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-semibold hover:underline focus:outline-none"
               >
-                <div className="flex items-center justify-between">
-                  <span className="text-indigo-700 font-semibold flex items-center gap-2">
-                    💡 Explicación
-                  </span>
-                  <motion.span
-                    animate={{ rotate: showExplanation ? 180 : 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="text-indigo-500"
-                  >
-                    ▼
-                  </motion.span>
-                </div>
+                {showExplanation ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd" />
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" clipRule="evenodd" />
+                  </svg>
+                )}
+                <span>{showExplanation ? t('exam.feedback.actions.hideExplanation') : t('exam.feedback.actions.seeExplanation')}</span> {/* ✅ Traducido */}
               </button>
               
               <AnimatePresence>
@@ -159,59 +144,32 @@ export function FeedbackCard({
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3 }}
                     className="overflow-hidden"
                   >
-                    <div className="bg-indigo-50 rounded-b-lg p-4 mt-2 border-2 border-indigo-200">
-                      <p className="text-gray-700 leading-relaxed">{explanation}</p>
+                    <div className="bg-indigo-50 dark:bg-indigo-900/30 rounded-xl p-4 mt-2 text-indigo-900 dark:text-indigo-200 leading-relaxed border border-indigo-100 dark:border-indigo-800/50">
+                      {explanation}
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
-            </motion.div>
-          )}
-
-          {/* Link a flashcard relacionada */}
-          {relatedFlashcard && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.9 }}
-            >
-              <button
-                onClick={handleFlashcardClick}
-                className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white rounded-lg p-4 flex items-center justify-between transition-all transform hover:scale-105 shadow-lg"
-              >
-                <div className="text-left">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-2xl">{relatedFlashcard.emoji}</span>
-                    <span className="font-semibold">Estudiar este tema</span>
-                  </div>
-                  <p className="text-sm opacity-90">{relatedFlashcard.title}</p>
-                </div>
-                <span className="text-2xl">→</span>
-              </button>
-            </motion.div>
+            </div>
           )}
         </div>
 
-        {/* Botón de cerrar */}
-        <div className="p-6 pt-0">
-          <motion.button
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1 }}
-            onClick={onClose}
+        {/* Footer con botón */}
+        <div className="p-6 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-700">
+          <button
+            onClick={handleClose}
             className={`
-              w-full py-3 rounded-lg font-semibold text-white transition-all transform hover:scale-105 shadow-lg
+              w-full py-4 rounded-xl font-bold text-white text-lg shadow-lg transform transition-all hover:scale-[1.02] active:scale-[0.98]
               ${isCorrect 
-                ? 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600' 
-                : 'bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600'
+                ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:shadow-green-500/30' 
+                : 'bg-gradient-to-r from-indigo-500 to-purple-600 hover:shadow-indigo-500/30'
               }
             `}
           >
-            Continuar →
-          </motion.button>
+            {t('exam.feedback.actions.continue')} → {/* ✅ Traducido */}
+          </button>
         </div>
       </motion.div>
     </AnimatePresence>
@@ -219,16 +177,12 @@ export function FeedbackCard({
 }
 
 FeedbackCard.propTypes = {
-  question: PropTypes.string.isRequired,
-  userAnswer: PropTypes.string.isRequired,
-  correctAnswer: PropTypes.string.isRequired,
+  question: PropTypes.string,
+  userAnswer: PropTypes.string,
+  correctAnswer: PropTypes.string,
   isCorrect: PropTypes.bool.isRequired,
   explanation: PropTypes.string,
-  relatedFlashcard: PropTypes.shape({
-    subjectId: PropTypes.string.isRequired,
-    emoji: PropTypes.string,
-    title: PropTypes.string.isRequired
-  }),
+  relatedFlashcard: PropTypes.object,
   onClose: PropTypes.func.isRequired,
   showConfetti: PropTypes.func
 };

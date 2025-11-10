@@ -3,15 +3,17 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useSwipe } from '@/hooks/useSwipe';
 import { Breadcrumbs, Button, Loading, SoundControl, DarkModeToggle } from '@/components/common';
-import { QuestionNavigator } from '@/components/exam'; // Asumiendo que existe y está en esa ruta
 import { useDarkMode } from '@/hooks/useDarkMode';
 import { useSoundContext } from '@/context/SoundContext';
+import { useLanguage } from '@/context/LanguageContext'; // ✅ Import hook
+import HeaderControls from '@/components/layout/HeaderControls';
 
 export default function ReviewMode() {
   const { subjectId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const results = location.state?.results;
+  const { t } = useLanguage(); // ✅ Usar hook
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [filterMode, setFilterMode] = useState('all');
@@ -25,7 +27,7 @@ export default function ReviewMode() {
     toggleMute,
     changeVolume,
     playTest,
-    playClick // <-- Para la navegación
+    playClick
   } = useSoundContext();
 
   // Swipe gestures para mobile
@@ -66,7 +68,7 @@ export default function ReviewMode() {
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [currentIndex, filterMode, results, navigate, subjectId]); // Simplificado
+  }, [currentIndex, filterMode, results, navigate, subjectId]);
 
   if (!results) return <Loading fullScreen />;
 
@@ -79,14 +81,10 @@ export default function ReviewMode() {
     const isCorrect = isAnswered && userAnswer === q.correct;
 
     switch(filterMode) {
-      case 'correct':
-        return isCorrect;
-      case 'incorrect':
-        return isAnswered && !isCorrect;
-      case 'unanswered':
-        return !isAnswered;
-      default:
-        return true;
+      case 'correct': return isCorrect;
+      case 'incorrect': return isAnswered && !isCorrect;
+      case 'unanswered': return !isAnswered;
+      default: return true;
     }
   }), [questions, answers, filterMode]);
 
@@ -98,36 +96,36 @@ export default function ReviewMode() {
   // --- Funciones de Navegación (CON SONIDO) ---
   const nextQuestion = () => {
     if (currentIndex < filteredQuestions.length - 1) {
-      playClick(); // ✅ SONIDO
+      playClick();
       setCurrentIndex(prev => prev + 1);
     }
   };
 
   const previousQuestion = () => {
     if (currentIndex > 0) {
-      playClick(); // ✅ SONIDO
+      playClick();
       setCurrentIndex(prev => prev - 1);
     }
   };
 
   const goToQuestion = (index) => {
-    playClick(); // ✅ SONIDO
+    playClick();
     setCurrentIndex(index);
     setShowNavigator(false);
   };
   // ---------------------------------------------
 
   const handleFilterChange = (mode) => {
-    playClick(); // ✅ SONIDO
+    playClick();
     setFilterMode(mode);
     setCurrentIndex(0);
   };
 
   const breadcrumbItems = [
-    { label: 'Inicio', href: '/', icon: '🏠' },
+    { label: t('common.home'), href: '/', icon: '🏠' }, // ✅ Traducido
     { label: results.subjectName, href: '/', icon: '📚' },
-    { label: 'Resultados', href: `/results/${subjectId}`, state: { results }, icon: '📊' },
-    { label: 'Revisión Detallada', icon: '🔍' }
+    { label: t('common.results'), href: `/results/${subjectId}`, state: { results }, icon: '📊' }, // ✅ Traducido
+    { label: t('review.title'), icon: '🔍' } // ✅ Traducido
   ];
 
   if (!currentQuestion) {
@@ -144,7 +142,7 @@ export default function ReviewMode() {
               Cambia el filtro para ver más preguntas
             </p>
             <Button onClick={() => handleFilterChange('all')}>
-              Mostrar todas
+              {t('review.filters.all')} {/* ✅ Traducido */}
             </Button>
           </div>
         </div>
@@ -165,7 +163,7 @@ export default function ReviewMode() {
           <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
-          <span className="hidden sm:inline">Resultados</span>
+          <span className="hidden sm:inline">{t('common.results')}</span> {/* ✅ Traducido */}
         </button>
         <button
           onClick={() => navigate('/')}
@@ -174,82 +172,79 @@ export default function ReviewMode() {
           <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
           </svg>
-          <span className="hidden sm:inline">Inicio</span>
+          <span className="hidden sm:inline">{t('common.home')}</span> {/* ✅ Traducido */}
         </button>
       </div>
 
       {/* Header con filtros */}
+{/* Header con filtros y controles */}
       <div className="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700 sticky top-[52px] z-20">
         <div className="max-w-7xl mx-auto px-4 py-3 lg:py-4">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 lg:gap-0">
-            <div>
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            
+            {/* 1. Título y Subtítulo */}
+            <div className="flex-shrink-0">
               <h1 className="text-xl lg:text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
-                🔍 Revisión Detallada
+                🔍 {t('review.title')}
               </h1>
               <p className="text-xs lg:text-sm text-gray-600 dark:text-gray-400 mt-1">
-                {results.subjectName} • Calificación: {results.score.toFixed(1)}%
+                {results.subjectName} • {t('review.score')}: {results.score.toFixed(1)}%
               </p>
             </div>
 
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 lg:pb-0 scrollbar-hide">
-              {/* Botones de filtro */}
-              <button
-                onClick={() => handleFilterChange('all')}
-                className={`px-3 lg:px-4 py-2 rounded-lg text-xs lg:text-sm font-medium transition-all whitespace-nowrap min-h-[44px] ${
-                  filterMode === 'all'
-                    ? 'bg-indigo-500 text-white shadow-md'
-                    : 'bg-white dark:bg-gray-700 dark:text-gray-200 text-gray-700 border-2 border-gray-300 dark:border-gray-600 hover:border-indigo-400 dark:hover:border-indigo-500'
-                }`}
-              >
-                Todas ({questions.length})
-              </button>
-              <button
-                onClick={() => handleFilterChange('correct')}
-                className={`px-3 lg:px-4 py-2 rounded-lg text-xs lg:text-sm font-medium transition-all whitespace-nowrap min-h-[44px] ${
-                  filterMode === 'correct'
-                    ? 'bg-green-500 text-white shadow-md'
-                    : 'bg-white dark:bg-gray-700 dark:text-gray-200 text-gray-700 border-2 border-gray-300 dark:border-gray-600 hover:border-green-400 dark:hover:border-green-500'
-                }`}
-              >
-                ✅ <span className="hidden sm:inline">Correctas</span> ({results.correctAnswers})
-              </button>
-              <button
-                onClick={() => handleFilterChange('incorrect')}
-                className={`px-3 lg:px-4 py-2 rounded-lg text-xs lg:text-sm font-medium transition-all whitespace-nowrap min-h-[44px] ${
-                  filterMode === 'incorrect'
-                    ? 'bg-red-500 text-white shadow-md'
-                    : 'bg-white dark:bg-gray-700 dark:text-gray-200 text-gray-700 border-2 border-gray-300 dark:border-gray-600 hover:border-red-400 dark:hover:border-red-500'
-                }`}
-              >
-                ❌ <span className="hidden sm:inline">Incorrectas</span> ({results.totalQuestions - results.correctAnswers - (results.totalQuestions - Object.keys(answers).length)})
-              </button>
-              <button
-                onClick={() => handleFilterChange('unanswered')}
-                className={`px-3 lg:px-4 py-2 rounded-lg text-xs lg:text-sm font-medium transition-all whitespace-nowrap min-h-[44px] ${
-                  filterMode === 'unanswered'
-                    ? 'bg-gray-500 text-white shadow-md'
-                    : 'bg-white dark:bg-gray-700 dark:text-gray-200 text-gray-700 border-2 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
-                }`}
-              >
-                ⚪ <span className="hidden sm:inline">Sin responder</span> ({results.totalQuestions - Object.keys(answers).length})
-              </button>
+            {/* 2. Contenedor Derecho (Filtros + Controles) */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 lg:gap-6 min-w-0">
+              
+              {/* 2a. Filtros (Scrollable horizontalmente si falta espacio) */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-hide w-full sm:w-auto mask-right">
+                <button
+                  onClick={() => handleFilterChange('all')}
+                  className={`px-3 lg:px-4 py-2 rounded-lg text-xs lg:text-sm font-medium transition-all whitespace-nowrap min-h-[44px] flex-shrink-0 ${
+                    filterMode === 'all'
+                      ? 'bg-indigo-500 text-white shadow-md'
+                      : 'bg-white dark:bg-gray-700 dark:text-gray-200 text-gray-700 border-2 border-gray-300 dark:border-gray-600 hover:border-indigo-400 dark:hover:border-indigo-500'
+                  }`}
+                >
+                  {t('review.filters.all')} ({questions.length})
+                </button>
+                <button
+                  onClick={() => handleFilterChange('correct')}
+                  className={`px-3 lg:px-4 py-2 rounded-lg text-xs lg:text-sm font-medium transition-all whitespace-nowrap min-h-[44px] flex-shrink-0 ${
+                    filterMode === 'correct'
+                      ? 'bg-green-500 text-white shadow-md'
+                      : 'bg-white dark:bg-gray-700 dark:text-gray-200 text-gray-700 border-2 border-gray-300 dark:border-gray-600 hover:border-green-400 dark:hover:border-green-500'
+                  }`}
+                >
+                  ✅ <span className="hidden xl:inline">{t('review.filters.correct')}</span> ({results.correctAnswers})
+                </button>
+                <button
+                  onClick={() => handleFilterChange('incorrect')}
+                  className={`px-3 lg:px-4 py-2 rounded-lg text-xs lg:text-sm font-medium transition-all whitespace-nowrap min-h-[44px] flex-shrink-0 ${
+                    filterMode === 'incorrect'
+                      ? 'bg-red-500 text-white shadow-md'
+                      : 'bg-white dark:bg-gray-700 dark:text-gray-200 text-gray-700 border-2 border-gray-300 dark:border-gray-600 hover:border-red-400 dark:hover:border-red-500'
+                  }`}
+                >
+                  ❌ <span className="hidden xl:inline">{t('review.filters.incorrect')}</span> ({results.totalQuestions - results.correctAnswers - (results.totalQuestions - Object.keys(answers).length)})
+                </button>
+                <button
+                  onClick={() => handleFilterChange('unanswered')}
+                  className={`px-3 lg:px-4 py-2 rounded-lg text-xs lg:text-sm font-medium transition-all whitespace-nowrap min-h-[44px] flex-shrink-0 ${
+                    filterMode === 'unanswered'
+                      ? 'bg-gray-500 text-white shadow-md'
+                      : 'bg-white dark:bg-gray-700 dark:text-gray-200 text-gray-700 border-2 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                  }`}
+                >
+                  ⚪ <span className="hidden xl:inline">{t('review.filters.unanswered')}</span> ({results.totalQuestions - Object.keys(answers).length})
+                </button>
+              </div>
 
-              {/* Controles de UI */}
-              <div className="flex gap-2 pl-4 border-l border-gray-200 dark:border-gray-700">
-                <SoundControl
-                  isMuted={isMuted}
-                  volume={volume}
-                  onToggleMute={toggleMute}
-                  onVolumeChange={changeVolume}
-                  onTest={playTest}
-                  compact
-                />
-                <DarkModeToggle 
-                  isDark={isDark} 
-                  toggle={toggleDarkMode}
-                />
+              {/* 2b. Controles de Header (FUERA del scroll) */}
+              <div className="flex-shrink-0 sm:border-l sm:border-gray-200 dark:sm:border-gray-700 sm:pl-4 ml-auto sm:ml-0">
+                <HeaderControls languageReadOnly={true} />
               </div>
             </div>
+
           </div>
         </div>
       </div>
@@ -261,13 +256,8 @@ export default function ReviewMode() {
           className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-3 px-4 rounded-xl font-semibold shadow-lg flex items-center justify-center gap-2 min-h-[44px]"
         >
           <span className="text-xl">🗂️</span>
-          <span>{showNavigator ? 'Ocultar' : 'Ver'} Navegador</span>
-          <svg 
-            className={`w-5 h-5 transition-transform ${showNavigator ? 'rotate-180' : ''}`} 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
-          >
+          <span>{showNavigator ? t('exam.ui.hide') : t('exam.ui.navigator')}</span> {/* ✅ Traducido */}
+          <svg className={`w-5 h-5 transition-transform ${showNavigator ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
         </button>
@@ -280,7 +270,7 @@ export default function ReviewMode() {
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-4 lg:p-6 border-2 border-gray-100 dark:border-gray-700 sticky top-32">
               <h3 className="font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2 text-base lg:text-lg">
                 <span className="text-xl lg:text-2xl">🗂️</span>
-                Navegación ({filteredQuestions.length} pregs.)
+                {t('review.nav.title')} ({filteredQuestions.length} {t('review.nav.pregs')}) {/* ✅ Traducido */}
               </h3>
 
               <div className="grid grid-cols-5 gap-2 mb-4 max-h-64 lg:max-h-96 overflow-y-auto">
@@ -316,28 +306,23 @@ export default function ReviewMode() {
               <div className="text-xs text-gray-600 dark:text-gray-300 space-y-2 pt-4 border-t dark:border-gray-700">
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 rounded bg-gradient-to-br from-green-100 to-emerald-100 border-2 border-green-400"></div>
-                  <span className="dark:text-gray-400">Correcta</span>
+                  <span className="dark:text-gray-400">{t('review.legend.correct')}</span> {/* ✅ Traducido */}
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 rounded bg-gradient-to-br from-red-100 to-pink-100 border-2 border-red-400"></div>
-                  <span className="dark:text-gray-400">Incorrecta</span>
+                  <span className="dark:text-gray-400">{t('review.legend.incorrect')}</span> {/* ✅ Traducido */}
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 rounded bg-gray-100 border-2 border-gray-300"></div>
-                  <span className="dark:text-gray-400">Sin responder</span>
+                  <span className="dark:text-gray-400">{t('review.legend.unanswered')}</span> {/* ✅ Traducido */}
                 </div>
               </div>
 
               {/* Hints de gestos */}
               <div className="mt-4 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/40 dark:to-pink-900/40 border-2 border-purple-200 dark:border-purple-800 rounded-xl p-3 lg:hidden">
                 <p className="text-xs font-bold text-purple-900 dark:text-purple-300 mb-2 flex items-center gap-2">
-                  <span className="text-base">👆</span> Gestos táctiles
+                  <span className="text-base">👆</span> {t('exam.ui.tipMobile')} {/* ✅ Reusado Tip */}
                 </p>
-                <ul className="text-xs text-purple-700 dark:text-purple-300 space-y-1">
-                  <li>← Desliza para siguiente</li>
-                  <li>→ Desliza para anterior</li>
-                  <li>↓ Desliza para navegador</li>
-                </ul>
               </div>
             </div>
           </div>
@@ -354,8 +339,9 @@ export default function ReviewMode() {
               {/* Header */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 pb-3 border-b-2 border-gray-100 dark:border-gray-700 gap-2">
                 <span className="text-xs font-bold text-gray-600 dark:text-gray-300 bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 px-3 py-1.5 rounded-full whitespace-nowrap">
-                  🔍 Pregunta {questions.indexOf(currentQuestion) + 1} de {questions.length}
+                  🔍 {t('review.question.title')} {questions.indexOf(currentQuestion) + 1} de {questions.length} {/* ✅ Traducido */}
                 </span>
+                {/* Badges de categoría/dificultad se mantienen igual (idealmente deberían traducirse también si son ENUMs) */}
                 <div className="flex gap-2 flex-wrap">
                   {currentQuestion.category && (
                     <span className="px-3 py-1.5 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-full text-xs font-semibold shadow-md">
@@ -364,15 +350,14 @@ export default function ReviewMode() {
                   )}
                   {currentQuestion.difficulty && (
                     <span className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-md ${
-                      currentQuestion.difficulty === 'basico' 
-                        ? 'bg-gradient-to-r from-green-400 to-emerald-400 text-white' :
-                      currentQuestion.difficulty === 'intermedio' 
-                        ? 'bg-gradient-to-r from-yellow-400 to-orange-400 text-white' :
-                        'bg-gradient-to-r from-red-400 to-pink-400 text-white'
+                      currentQuestion.difficulty === 'basico' ? 'bg-gradient-to-r from-green-400 to-emerald-400 text-white' :
+                      currentQuestion.difficulty === 'intermedio' ? 'bg-gradient-to-r from-yellow-400 to-orange-400 text-white' :
+                      'bg-gradient-to-r from-red-400 to-pink-400 text-white'
                     }`}>
-                      {currentQuestion.difficulty === 'basico' ? '⭐ Básico' :
-                       currentQuestion.difficulty === 'intermedio' ? '⭐⭐ Intermedio' :
-                       '⭐⭐⭐ Avanzado'}
+{/* ✅ USAR t() PARA TRADUCIR LA DIFICULTAD */}
+    {currentQuestion.difficulty === 'basico' ? `⭐ ${t('common.difficulty.basico')}` :
+     currentQuestion.difficulty === 'intermedio' ? `⭐⭐ ${t('common.difficulty.intermedio')}` :
+     `⭐⭐⭐ ${t('common.difficulty.avanzado')}`}
                     </span>
                   )}
                 </div>
@@ -398,26 +383,15 @@ export default function ReviewMode() {
                   if (isCorrectAnswer) {
                     optionStyles = 'border-green-500 dark:border-green-600 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 ring-4 ring-green-200 dark:ring-green-700/50';
                     iconBg = 'border-green-500 dark:border-green-600 bg-gradient-to-br from-green-500 to-emerald-500';
-                    icon = (
-                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                      </svg>
-                    );
+                    icon = <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>;
                   } else if (isUserAnswer && !isCorrectAnswer) {
                     optionStyles = 'border-red-500 dark:border-red-600 bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-900/30 dark:to-pink-900/30 ring-4 ring-red-200 dark:ring-red-700/50';
                     iconBg = 'border-red-500 dark:border-red-600 bg-gradient-to-br from-red-500 to-pink-500';
-                    icon = (
-                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    );
+                    icon = <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" /></svg>;
                   }
 
                   return (
-                    <div
-                      key={index}
-                      className={`w-full p-3 lg:p-4 rounded-xl ${optionStyles}`}
-                    >
+                    <div key={index} className={`w-full p-3 lg:p-4 rounded-xl ${optionStyles}`}>
                       <div className="flex items-center gap-3">
                         <div className={`flex-shrink-0 w-7 h-7 rounded-full border-2 flex items-center justify-center shadow-sm ${iconBg}`}>
                           {icon}
@@ -439,40 +413,32 @@ export default function ReviewMode() {
 
               {/* Status Banner */}
               <div className={`p-4 rounded-xl border-l-4 mb-6 ${
-                !isAnswered
-                  ? 'bg-gray-50 dark:bg-gray-700 border-gray-400 dark:border-gray-500'
-                  : isCorrect
-                    ? 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 border-green-500 dark:border-green-600'
-                    : 'bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/30 dark:to-orange-900/30 border-red-500 dark:border-red-600'
+                !isAnswered ? 'bg-gray-50 dark:bg-gray-700 border-gray-400 dark:border-gray-500' :
+                isCorrect ? 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 border-green-500 dark:border-green-600' :
+                'bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/30 dark:to-orange-900/30 border-red-500 dark:border-red-600'
               }`}>
                 <div className="flex items-center gap-3">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    !isAnswered
-                      ? 'bg-gray-400'
-                      : isCorrect
-                        ? 'bg-gradient-to-br from-green-500 to-emerald-500'
-                        : 'bg-gradient-to-br from-red-500 to-orange-500'
+                    !isAnswered ? 'bg-gray-400' : isCorrect ? 'bg-gradient-to-br from-green-500 to-emerald-500' : 'bg-gradient-to-br from-red-500 to-orange-500'
                   }`}>
-                    <span className="text-white text-xl font-bold">
-                      {!isAnswered ? '⚪' : isCorrect ? '✓' : '✗'}
-                    </span>
+                    <span className="text-white text-xl font-bold">{!isAnswered ? '⚪' : isCorrect ? '✓' : '✗'}</span>
                   </div>
                   <div className="flex-1">
                     <p className={`font-bold text-sm lg:text-base ${
                       !isAnswered ? 'text-gray-700 dark:text-gray-300' : isCorrect ? 'text-green-900 dark:text-green-300' : 'text-red-900 dark:text-red-300'
                     }`}>
                       {!isAnswered 
-                        ? '⚪ No respondiste esta pregunta'
+                        ? `⚪ ${t('review.question.unansweredLabel')}` 
                         : isCorrect 
-                          ? '🎉 ¡Respuesta Correcta!' 
-                          : '❌ Respuesta Incorrecta'}
+                          ? '🎉 ' + t('results.success') + '!' 
+                          : '❌ ' + t('results.fail')} {/* ✅ Traducido */}
                     </p>
                     {isAnswered && (
                       <p className="text-xs lg:text-sm text-gray-600 dark:text-gray-400 mt-1">
-                        Tu respuesta: <strong>{currentQuestion.options[userAnswer]}</strong>
+                        {t('review.question.yourAnswer')}: <strong>{currentQuestion.options[userAnswer]}</strong>
                         {!isCorrect && (
-                          <> • Correcta: <strong className="text-green-600 dark:text-green-400">{currentQuestion.options[currentQuestion.correct]}</strong></>
-                        )}
+                          <> • {t('review.question.correctAnswer')}: <strong className="text-green-600 dark:text-green-400">{currentQuestion.options[currentQuestion.correct]}</strong></>
+                        )} {/* ✅ Traducido */}
                       </p>
                     )}
                   </div>
@@ -488,7 +454,7 @@ export default function ReviewMode() {
                     </div>
                     <div className="flex-1">
                       <p className="font-bold text-sm lg:text-base text-blue-900 dark:text-blue-300 mb-2">
-                        📚 Explicación
+                        📚 {t('review.question.explanation')} {/* ✅ Traducido */}
                       </p>
                       <p className="text-gray-700 dark:text-gray-300 text-xs lg:text-sm leading-relaxed">
                         {currentQuestion.explanation}
@@ -514,7 +480,7 @@ export default function ReviewMode() {
               <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              <span className="hidden sm:inline">Anterior</span>
+              <span className="hidden sm:inline">{t('common.back')}</span> {/* ✅ Traducido */}
             </button>
 
             <div className="text-center flex-1">
@@ -522,7 +488,7 @@ export default function ReviewMode() {
                 {currentIndex + 1} de {filteredQuestions.length}
               </div>
               <div className="text-xs text-gray-500 dark:text-gray-400 hidden lg:block">
-                <kbd className="font-mono">←→</kbd> para navegar
+                <kbd className="font-mono">←→</kbd> {t('footer.shortcuts.nav')} {/* ✅ Traducido */}
               </div>
             </div>
 
@@ -531,7 +497,7 @@ export default function ReviewMode() {
                 onClick={nextQuestion}
                 className="flex items-center gap-1 lg:gap-2 px-3 lg:px-6 py-2 lg:py-3 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all text-sm lg:text-base min-h-[44px]"
               >
-                <span className="hidden sm:inline">Siguiente</span>
+                <span className="hidden sm:inline">{t('common.next')}</span> {/* ✅ Traducido */}
                 <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
@@ -543,14 +509,14 @@ export default function ReviewMode() {
                   onClick={() => navigate(`/results/${subjectId}`, { state: { results } })}
                   className="text-xs lg:text-sm px-3 lg:px-4 py-2 min-h-[44px] hidden sm:flex"
                 >
-                  📊 Resultados
+                  📊 {t('common.results')} {/* ✅ Traducido */}
                 </Button>
                 <Button
                   variant="primary"
                   onClick={() => navigate('/')}
                   className="text-xs lg:text-sm px-3 lg:px-4 py-2 min-h-[44px]"
                 >
-                  🏠 Inicio
+                  🏠 {t('common.home')} {/* ✅ Traducido */}
                 </Button>
               </div>
             )}

@@ -1,85 +1,60 @@
-import { Button } from '../common/Button';
-import PropTypes from 'prop-types';
+import { Button } from '../common';
+import { useLanguage } from '@/context/LanguageContext'; // ✅ Import hook
 
-export function NavigationControls({ 
+export default function NavigationControls({
+  currentIndex,
+  totalQuestions,
   onPrevious,
   onNext,
   onToggleReview,
-  onFinish,
   canGoPrevious,
   canGoNext,
   isReviewed,
-  answeredCount,
-  totalQuestions,
+  onFinish,
   mode
 }) {
+  const { t } = useLanguage(); // ✅ Usar hook
+
   return (
-    <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 sticky bottom-0 shadow-lg transition-colors duration-300">
-      <div className="max-w-7xl mx-auto px-4 py-4">
-        <div className="flex items-center justify-between gap-4">
-          {/* Previous button */}
-          <Button
-            variant="outline"
-            onClick={onPrevious}
-            disabled={!canGoPrevious}
-            className="flex items-center gap-2"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Anterior
-          </Button>
+    <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-4 mt-8 pt-6 border-t-2 border-gray-100 dark:border-gray-800 transition-colors duration-300">
+      <div className="flex gap-3 w-full sm:w-auto">
+        <Button
+          variant="secondary"
+          onClick={onPrevious}
+          disabled={!canGoPrevious}
+          className="flex-1 sm:flex-none"
+        >
+          ← {t('common.back')} {/* ✅ Traducido */}
+        </Button>
+        
+        <Button
+          variant={isReviewed ? 'warning' : 'secondary'}
+          onClick={onToggleReview}
+          className="flex-1 sm:flex-none"
+        >
+          {isReviewed ? '★' : '☆'} {t('exam.shortcuts.mark')} {/* ✅ Traducido */}
+        </Button>
+      </div>
 
-          {/* Review button */}
+      <div className="flex gap-3 w-full sm:w-auto">
+        {canGoNext ? (
           <Button
-            variant={isReviewed ? 'warning' : 'ghost'}
-            onClick={onToggleReview}
-            className="flex items-center gap-2"
+            variant="primary"
+            onClick={onNext}
+            className="flex-1 sm:flex-none w-full sm:w-auto bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600"
           >
-            <span className="text-lg">📌</span>
-            {isReviewed ? 'Marcada' : 'Marcar para revisar'}
+            {t('common.next')} → {/* ✅ Traducido */}
           </Button>
-
-          {/* Next or Finish button */}
-          {canGoNext ? (
-            <Button
-              variant="primary"
-              onClick={onNext}
-              className="flex items-center gap-2"
-            >
-              Siguiente
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </Button>
-          ) : (
-            <Button
-              variant="success"
-              onClick={onFinish}
-              size="lg"
-              className="flex items-center gap-2"
-            >
-              <span className="text-lg">✓</span>
-              Finalizar {answeredCount < totalQuestions && `(${totalQuestions - answeredCount} sin responder)`}
-            </Button>
-          )}
-        </div>
+        ) : (
+          <Button
+            variant="primary"
+            onClick={onFinish}
+            className="flex-1 sm:flex-none w-full sm:w-auto bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 animate-pulse-subtle"
+          >
+            ✨ {t('common.finish')} {/* ✅ Traducido */}
+          </Button>
+        )}
       </div>
     </div>
   );
 }
-
-NavigationControls.propTypes = {
-  onPrevious: PropTypes.func.isRequired,
-  onNext: PropTypes.func.isRequired,
-  onToggleReview: PropTypes.func.isRequired,
-  onFinish: PropTypes.func.isRequired,
-  canGoPrevious: PropTypes.bool.isRequired,
-  canGoNext: PropTypes.bool.isRequired,
-  isReviewed: PropTypes.bool.isRequired,
-  answeredCount: PropTypes.number.isRequired,
-  totalQuestions: PropTypes.number.isRequired,
-  mode: PropTypes.string
-};
-
-export default NavigationControls;

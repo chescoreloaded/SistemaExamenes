@@ -2,16 +2,22 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import PropTypes from 'prop-types';
 
-export function Breadcrumbs({ items }) {
+export function Breadcrumbs({ items, className = '' }) {
+  // Clases por defecto que queremos poder anular si pasamos className
+  const defaultClasses = "bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-30 shadow-sm";
+  
+  // Si se pasa className, usamos eso. Si no, usamos los defaults.
+  // Esto permite una personalización total cuando está anidado.
+  const finalClass = className || defaultClasses;
+
   return (
     <motion.nav
-      // ✅ Added dark mode classes for background and border
-      className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-30 shadow-sm"
+      className={finalClass}
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+      <div className={`max-w-7xl mx-auto ${className ? '' : 'px-4 sm:px-6 lg:px-8 py-3'}`}>
         <ol className="flex items-center space-x-2 text-sm">
           {items.map((item, index) => {
             const isLast = index === items.length - 1;
@@ -20,7 +26,6 @@ export function Breadcrumbs({ items }) {
               <li key={index} className="flex items-center">
                 {index > 0 && (
                   <svg
-                    // ✅ Added dark mode class for separator color
                     className="w-4 h-4 text-gray-400 dark:text-gray-500 mx-2"
                     fill="none"
                     stroke="currentColor"
@@ -31,14 +36,14 @@ export function Breadcrumbs({ items }) {
                 )}
 
                 {isLast ? (
-                  <span className="flex items-center gap-2 font-semibold text-indigo-600 dark:text-indigo-400"> {/* ✅ Dark mode text color */}
+                  <span className="flex items-center gap-2 font-semibold text-indigo-600 dark:text-indigo-400">
                     {item.icon && <span className="text-lg">{item.icon}</span>}
                     <span>{item.label}</span>
                   </span>
                 ) : (
                   <Link
                     to={item.href}
-                    // ✅ Added dark mode classes for link text color
+                    state={item.state} // ✅ IMPORTANTE: Pasar el state si existe (para volver a results desde review)
                     className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-medium hover:underline"
                   >
                     {item.icon && <span className="text-lg">{item.icon}</span>}
@@ -59,9 +64,11 @@ Breadcrumbs.propTypes = {
     PropTypes.shape({
       label: PropTypes.string.isRequired,
       href: PropTypes.string,
-      icon: PropTypes.string
+      icon: PropTypes.string,
+      state: PropTypes.object // Agregado para soportar navegación con estado
     })
-  ).isRequired
+  ).isRequired,
+  className: PropTypes.string
 };
 
-export default Breadcrumbs; // Keep default export if other files expect it
+export default Breadcrumbs;
