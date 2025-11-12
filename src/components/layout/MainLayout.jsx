@@ -1,4 +1,3 @@
-// src/components/layout/MainLayout.jsx
 import { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -11,19 +10,17 @@ export default function MainLayout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
 
-  // Cerrar menú móvil al cambiar de ruta
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
 
   return (
-    // ✅ ARREGLO DE VIEWPORT (overflow-x-hidden):
-    // Previene que cualquier componente hijo cause un scroll horizontal
-    // y arregla el problema de "zoom-out" en móviles.
+    // ✅ ARREGLO DE OVERFLOW (Problema 1 y 7)
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300 overflow-x-hidden">
-      {/* ✅ HEADER GLOBAL */}
+      {/* ✅ HEADER GLOBAL */}\
       <header className="sticky top-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200/50 dark:border-gray-800/50 supports-[backdrop-filter]:bg-white/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* ✅ ARREGLO DE LAYOUT (Problema 1 y 8) */}
           <div className="flex items-center justify-between h-16 md:h-20">
             
             {/* Logo (Izquierda) */}
@@ -36,19 +33,22 @@ export default function MainLayout() {
               <Navbar />
             </div>
             
-            {/* Controles Desktop (Derecha) */}
-            <div className="hidden md:flex items-center gap-4">
-              <HeaderControls />
-            </div>
+            {/* Controles y Hamburguesa (Derecha) */}
+            <div className="flex items-center gap-2 md:gap-4">
+              {/* Controles Desktop */}
+              <div className="hidden md:flex items-center gap-4">
+                <HeaderControls />
+              </div>
 
-            {/* MOBILE: Controles + Hamburguesa (Derecha) */}
-            <div className="flex md:hidden items-center gap-2">
-              <HeaderControls className="scale-90" /> {/* Un poco más pequeños en móvil */}
-              
-              {/* Botón Hamburguesa */}
+              {/* Controles Móvil (más pequeños) */}
+              <div className="flex md:hidden">
+                <HeaderControls className="scale-90" />
+              </div>
+
+              {/* Botón Hamburguesa (Solo Móvil) */}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ml-2"
+                className="flex md:hidden p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ml-1" // `ml-1` da espacio
                 aria-label="Toggle menu"
               >
                 <div className="w-6 h-6 flex flex-col justify-center gap-1.5">

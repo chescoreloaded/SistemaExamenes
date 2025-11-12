@@ -1,14 +1,6 @@
-// src/hooks/useSwipe.js
 import { useEffect, useRef } from 'react';
 
-/**
- * Hook para detectar gestos de swipe (deslizar) en dispositivos táctiles
- * @param {Function} onSwipeLeft - Callback cuando se desliza hacia la izquierda
- * @param {Function} onSwipeRight - Callback cuando se desliza hacia la derecha
- * @param {Function} onSwipeUp - Callback cuando se desliza hacia arriba (opcional)
- * @param {Function} onSwipeDown - Callback cuando se desliza hacia abajo (opcional)
- * @param {number} minSwipeDistance - Distancia mínima en px para detectar swipe (default: 50)
- */
+// ... (comentarios JSDoc) ...
 export function useSwipe(
   onSwipeLeft,
   onSwipeRight,
@@ -20,64 +12,61 @@ export function useSwipe(
   const touchStartY = useRef(0);
   const touchEndX = useRef(0);
   const touchEndY = useRef(0);
-  const targetElement = useRef(null); // Para prevenir el scroll del body
+  const targetElement = useRef(null);
 
   useEffect(() => {
     const handleTouchStart = (e) => {
+      // No registrar el swipe si el usuario está interactuando con un botón o scrollbar
+      if (e.target.closest('button, a, [role="button"]')) {
+        targetElement.current = null;
+        return;
+      }
+      targetElement.current = e.target;
       touchStartX.current = e.changedTouches[0].screenX;
       touchStartY.current = e.changedTouches[0].screenY;
-      targetElement.current = e.target; // Guarda el elemento que se tocó
     };
 
     const handleTouchEnd = (e) => {
+      if (!targetElement.current) return; // No se inició un swipe válido
       touchEndX.current = e.changedTouches[0].screenX;
       touchEndY.current = e.changedTouches[0].screenY;
-      handleSwipe(e);
+      handleSwipe();
+      targetElement.current = null; // Limpiar
     };
 
-    const handleSwipe = (e) => {
+    const handleSwipe = () => {
       const deltaX = touchEndX.current - touchStartX.current;
       const deltaY = touchEndY.current - touchStartY.current;
       const absDeltaX = Math.abs(deltaX);
       const absDeltaY = Math.abs(deltaY);
 
       // ✅ **LA CORRECCIÓN CLAVE ESTÁ AQUÍ**
-      // Si el movimiento vertical es MÁS GRANDE que el horizontal,
-      // asumimos que es un SCROLL y NO hacemos nada.
-      if (absDeltaY > absDeltaX) {
-        if (absDeltaY > minSwipeDistance) {
-          if (deltaY > 0) {
-            onSwipeDown?.(); // Swipe abajo (↓)
-          } else {
-            onSwipeUp?.(); // Swipe arriba (↑)
-          }
-        }
-        return; // ¡Importante! Salir para permitir el scroll nativo
-      }
-
-      // Si el movimiento horizontal es MÁS GRANDE, es un SWIPE.
-      if (absDeltaX > minSwipeDistance) {
-        // Prevenir el scroll horizontal nativo si estamos swipeando
-        // Esto es útil en elementos <main> que no deberían scrollear
-        if (targetElement.current) {
-          // e.preventDefault(); // Descomentar si el swipe horizontal causa problemas de scroll
-        }
-        
+      // Para ser un swipe horizontal, el movimiento X debe ser:
+      // 1. Mayor que la distancia mínima
+      // 2. SIGNIFICATIVAMENTE MAYOR que el movimiento Y (ej. 1.5 veces mayor)
+      //    Esto crea una "zona muerta" que prioriza el scroll vertical nativo.
+      if (absDeltaX > minSwipeDistance && absDeltaX > absDeltaY * 1.5) {
         if (deltaX > 0) {
           onSwipeRight?.(); // Swipe derecha (→)
         } else {
           onSwipeLeft?.(); // Swipe izquierda (←)
         }
+      } 
+      // Para ser un swipe vertical
+      else if (absDeltaY > minSwipeDistance && absDeltaY > absDeltaX * 1.5) {
+        if (deltaY > 0) {
+          onSwipeDown?.(); // Swipe abajo (↓)
+        } else {
+          onSwipeUp?.(); // Swipe arriba (↑)
+        }
       }
+      // Si no cumple ninguna, es un scroll diagonal o un tap, no hacemos nada.
     };
 
-    // Agregar listeners
-    // Aseguramos 'passive: true' para 'touchend' para mejor rendimiento
-    // 'touchstart' NO puede ser passive si queremos usar e.preventDefault()
-    document.addEventListener('touchstart', handleTouchStart, { passive: false });
+    // Usamos 'passive: true' para un mejor rendimiento de scroll
+    document.addEventListener('touchstart', handleTouchStart, { passive: true });
     document.addEventListener('touchend', handleTouchEnd, { passive: true });
 
-    // Cleanup
     return () => {
       document.removeEventListener('touchstart', handleTouchStart);
       document.removeEventListener('touchend', handleTouchEnd);

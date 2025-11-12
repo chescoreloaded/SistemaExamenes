@@ -1,4 +1,3 @@
-// src/components/exam/FeedbackCard.jsx
 import { motion, AnimatePresence } from 'framer-motion';
 import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
@@ -47,16 +46,20 @@ export function FeedbackCard({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.9, y: 20 }}
         transition={{ type: "spring", damping: 25, stiffness: 300 }}
+        // ✅ ARREGLO DE LAYOUT:
+        // Usamos un layout flex-col y especificamos altura MÁXIMA para móvil
+        // para forzar al contenido del medio a ser scrollable.
         className={`
           relative w-full max-w-2xl mx-auto rounded-2xl shadow-2xl overflow-hidden
           flex flex-col
+          max-h-[85vh] 
           ${isCorrect 
             ? 'bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-4 border-green-500 dark:border-green-600' 
             : 'bg-gradient-to-br from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20 border-4 border-red-500 dark:border-red-600'
           }
         `}
       >
-        {/* ✅ 1. Header Fijo */}
+        {/* ✅ 1. Header Fijo (flex-shrink-0) */}
         <div className={`
           p-4 md:p-6 text-white text-center flex-shrink-0
           ${isCorrect 
@@ -87,8 +90,8 @@ export function FeedbackCard({
           </p>
         </div>
 
-        {/* ✅ 2. Contenido Scrollable */}
-        <div className="p-4 md:p-6 space-y-4 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm overflow-y-auto max-h-[50vh] md:max-h-[60vh]">
+        {/* ✅ 2. Contenido Scrollable (overflow-y-auto) */}
+        <div className="p-4 md:p-6 space-y-4 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm overflow-y-auto">
           {/* Pregunta */}
           <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
             <h4 className="text-sm font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">
@@ -158,11 +161,11 @@ export function FeedbackCard({
           )}
         </div>
 
-        {/* ✅ 3. Footer Fijo */}
-        <div className="p-4 md:p-6 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-700 flex-shrink-0 sticky bottom-0">
+        {/* ✅ 3. Footer Fijo (flex-shrink-0) */}
+        <div className="p-4 md:p-6 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-700 flex-shrink-0">
           <button
             onClick={handleClose}
-            autoFocus // ✅ Añadimos autoFocus aquí para que el teclado/gamepad pueda usarlo
+            autoFocus // Enfocar el botón continuar
             className={`
               w-full py-3 md:py-4 rounded-xl font-bold text-white text-base md:text-lg shadow-lg transform transition-all hover:scale-[1.02] active:scale-[0.98]
               ${isCorrect 

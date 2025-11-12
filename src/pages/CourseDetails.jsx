@@ -1,4 +1,3 @@
-// src/pages/CourseDetails.jsx
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -24,10 +23,10 @@ export default function CourseDetails() {
     totalXpEarned: 0
   });
 
-  // ✅ ARREGLO DE SCROLL: Forzar el scroll al inicio al montar
+  // ✅ ARREGLO DE SCROLL (Problema 2)
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+  }, []); // Se ejecuta solo una vez al cargar el componente
 
   useEffect(() => {
     loadSubjectDetails();
@@ -135,7 +134,8 @@ export default function CourseDetails() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    // ✅ ARREGLO DE OVERFLOW (Problema 1)
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 overflow-x-hidden">
       {/* HERO SECTION */}
       <div 
         className="relative overflow-hidden pb-12"
@@ -143,7 +143,6 @@ export default function CourseDetails() {
           background: `linear-gradient(135deg, ${subject.color}22 0%, ${subject.color}11 100%)`
         }}
       >
-        {/* Botón Regresar Flotante */}
         <div className="absolute top-4 left-4 z-10">
              <button 
                onClick={() => navigate(-1)}
@@ -160,7 +159,6 @@ export default function CourseDetails() {
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-10"
           >
-            {/* Icono Grande */}
             <motion.div 
               initial={{ scale: 0.8, rotate: -10 }}
               animate={{ scale: 1, rotate: 0 }}
@@ -170,7 +168,6 @@ export default function CourseDetails() {
               {subject.icon}
             </motion.div>
             
-            {/* Textos Hero */}
             <div className="flex-1 text-center md:text-left">
               <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-3">
                  {subject.difficulty_level && (
@@ -192,7 +189,6 @@ export default function CourseDetails() {
             </div>
           </motion.div>
 
-          {/* Stats Rápidas (Glassmorphism) */}
           {stats.totalAttempts > 0 && (
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
@@ -211,6 +207,9 @@ export default function CourseDetails() {
 
       {/* ACTION CARDS SECTION */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-8 md:-mt-12 relative z-10">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">
+          {t('course.chooseModeTitle')}
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {modeCards.map((mode, index) => (
             <motion.div
@@ -229,7 +228,6 @@ export default function CourseDetails() {
                   {mode.description}
                 </p>
                 
-                {/* Features pequeñitos */}
                 <div className="text-xs font-medium text-gray-500 dark:text-gray-500 mb-6 bg-gray-50 dark:bg-gray-900/50 p-3 rounded-lg">
                   {mode.features}
                 </div>
@@ -240,7 +238,6 @@ export default function CourseDetails() {
                     bg-gradient-to-r ${mode.gradient} ${mode.shadow}
                     hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 
                     flex items-center justify-center gap-2`}
-                  // ✅ ARREGLO DE SCROLL: Quitado autoFocus
                 >
                   {mode.buttonText} →
                 </button>
@@ -251,7 +248,6 @@ export default function CourseDetails() {
 
         {/* CATEGORIES & INFO SECTION */}
         <div className="mt-16 grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Columna Izq: Categorías */}
           {subject.categories?.length > 0 && (
             <div className="lg:col-span-2">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
@@ -280,7 +276,6 @@ export default function CourseDetails() {
             </div>
           )}
 
-          {/* Columna Der: Info Adicional */}
           {(subject.institution || subject.instructor) && (
             <div className="bg-gray-100 dark:bg-gray-800/50 rounded-2xl p-6 lg:sticky lg:top-24 h-fit">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
@@ -305,7 +300,7 @@ export default function CourseDetails() {
   );
 }
 
-// Componentes auxiliares para limpieza
+// ... (Componentes auxiliares StatBox e InfoRow) ...
 function StatBox({ label, value, color }) {
   return (
     <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-md rounded-2xl p-4 text-center shadow-sm border border-white/20">

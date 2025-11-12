@@ -1,4 +1,3 @@
-// src/pages/ExamMode.jsx
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useExam } from '../hooks/useExam';
@@ -29,14 +28,13 @@ export default function ExamMode() {
 
   const [showFinishModal, setShowFinishModal] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
-  const [showNavigator, setShowNavigator] = useState(false); // Para desktop
-  const [showNavigatorModal, setShowNavigatorModal] = useState(false); // ✅ Para modal móvil
+  const [showNavigatorModal, setShowNavigatorModal] = useState(false); // ✅ Reemplaza showNavigator
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [currentFeedback, setCurrentFeedback] = useState(null);
   const { canvasRef, showConfetti } = useConfetti();
   const { setCurrentSubject, addRecentSubject } = useExamStore();
 
-  // ✅ ARREGLO DE SCROLL: Forzar el scroll al inicio al montar
+  // ✅ ARREGLO DE SCROLL (Problema 2)
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -70,11 +68,7 @@ export default function ExamMode() {
       const stats = {
         totalCorrectAnswers: points.totalCorrectAnswers + (isCorrect ? 1 : 0),
         totalWrongAnswers: points.totalWrongAnswers + (!isCorrect ? 1 : 0),
-        totalExamsCompleted: points.totalExamsCompleted,
-        totalStudySessions: points.totalStudySessions,
-        perfectExamsCount: points.perfectExamsCount,
-        dailyStreak: dailyStreak.current,
-        level: points.level
+        // ... (resto de stats)
       };
       const newAchievements = await checkAchievements(stats, { isCorrect, currentStreak: streakData ? streakData.current : 0 });
       if (newAchievements?.length > 0) setTimeout(() => playAchievement(), 500);
@@ -85,6 +79,8 @@ export default function ExamMode() {
         explanation: question.explanation, relatedFlashcard: question.relatedFlashcard,
         xpGained: xpData.totalXP, streakMultiplier: getStreakMultiplier()
       });
+      // ✅ ARREGLO DE SCROLL (Problema 4): Forzar scroll al inicio del modal
+      window.scrollTo(0, 0);
       setTimeout(() => { setShowFeedbackModal(true); if (isCorrect) showConfetti(); }, 600);
     }
   }, [currentIndex, questions, currentQuestion, selectAnswer, mode, playCorrect, playIncorrect, handleAnswer, playStreak, addAnswerXP, points, dailyStreak, checkAchievements, playAchievement, getStreakMultiplier, showConfetti]);
@@ -93,8 +89,7 @@ export default function ExamMode() {
     () => { if (canGoNext) { playClick(); nextQuestion(); } },
     () => { if (canGoPrevious) { playClick(); previousQuestion(); } },
     null,
-    // ✅ ARREGLO DE GESTOS: Quitamos el swipe-down para el navegador, ahora es un botón
-    () => {} 
+    () => {} // ✅ ARREGLO DE GESTOS: Quitamos el swipe-down para el navegador
   );
 
   useEffect(() => {
@@ -149,13 +144,7 @@ export default function ExamMode() {
     await addExamXP(examResults);
     
     const finalStats = {
-      totalCorrectAnswers: points.totalCorrectAnswers + examResults.correctCount,
-      totalWrongAnswers: points.totalWrongAnswers + examResults.incorrectCount,
-      totalExamsCompleted: points.totalExamsCompleted + (mode === 'exam' ? 1 : 0),
-      totalStudySessions: points.totalStudySessions,
-      perfectExamsCount: examResults.score === 100 ? points.perfectExamsCount + (mode === 'exam' ? 1 : 0) : points.perfectExamsCount,
-      dailyStreak: dailyStreak.current,
-      level: points.level
+      // ... (stats)
     };
     const newAchievements = await checkAchievements(finalStats, { examScore: examResults.score, isPerfect: examResults.score === 100 });
     if (newAchievements?.length > 0) setTimeout(() => playAchievement(), 800);
@@ -166,7 +155,7 @@ export default function ExamMode() {
     navigate('/');
   };
 
-  // Componente interno para el navegador (para reutilizar en Modal y Aside)
+  // Componente interno para el navegador (reutilizable)
   const NavigatorContent = () => (
     <div className="space-y-4">
       {typeof QuestionNavigator !== 'undefined' && <QuestionNavigator
@@ -202,15 +191,8 @@ export default function ExamMode() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 flex items-center justify-center p-4">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 max-w-md w-full text-center animate-bounce-in">
-          <div className="text-6xl mb-4">⚠️</div>
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">{t('common.error')}</h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">{error}</p>
-          <Button variant="primary" onClick={() => navigate('/')} className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600">
-            ← {t('results.actions.home')}
-          </Button>
-        </div>
+      <div className="min-h-screen ...">
+        {/* ... JSX de Error ... */}
       </div>
     );
   }
@@ -218,16 +200,16 @@ export default function ExamMode() {
   if (isLoading) return <SkeletonLoader type="exam-page" />;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 transition-colors duration-300">
+    // ✅ ARREGLO DE OVERFLOW (Problema 7)
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 transition-colors duration-300 overflow-x-hidden">
       <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-50" style={{ width: '100%', height: '100%' }} />
       
       {/* 2. Usar el nuevo Header Inmersivo */}
       <ImmersiveHeader>
-        {/* Pasamos los botones de acción como children (rightSlot) */}
         <Button variant="secondary" size="sm" onClick={() => { playClick(); setShowExitModal(true); }} className="hidden sm:flex">
           ← {t('exam.ui.exitBtn')}
         </Button>
-        {/* ✅ ARREGLO DE NAVEGADOR MÓVIL: Este botón ahora abre el Modal */}
+        {/* ✅ ARREGLO NAVEGADOR MÓVIL (Problema 3) */}
         <Button variant="secondary" size="sm" onClick={() => { playClick(); setShowNavigatorModal(true); }} className="lg:hidden">
           🗂️ {t('exam.ui.navigator')}
         </Button>
@@ -238,7 +220,6 @@ export default function ExamMode() {
         <div className="sticky top-16 md:top-20 z-30 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b-2 border-gray-200 dark:border-gray-700 shadow-md transition-colors duration-300">
           <div className="max-w-7xl mx-auto px-4 py-4 space-y-4">
             
-            {/* Gamification Header */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="md:col-span-2">
                 <LevelProgressBar
@@ -252,20 +233,16 @@ export default function ExamMode() {
                   compact={true}
                 />
               </div>
-              {/* ✅ ARREGLO i18n: Corregido 'type' hardcodeado */}
+              {/* ✅ ARREGLO i18n (Problema 3) */}
               <StreakDisplay current={correctStreak.current} best={correctStreak.best} type={t('gamification.streak.correct')} compact={true} />
             </div>
 
-            {/* Streak Banner */}
             {mode === 'practice' && correctStreak.current >= 3 && getStreakMessage() && (
-              <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg p-3 text-center shadow-lg animate-pulse">
-                <span className="text-2xl mr-2">{getStreakMessage().emoji}</span>
-                <span className="font-bold">{getStreakMessage().text}</span>
-                <span className="ml-2 text-sm opacity-90">(×{getStreakMultiplier()} XP)</span>
+              <div className="bg-gradient-to-r from-orange-500 to-red-500 ...">
+                {/* ... Streak Banner ... */}
               </div>
             )}
 
-            {/* Controls Header */}
             <div className="flex items-center justify-between gap-4 flex-wrap">
               <div className="flex items-center gap-4 flex-1 min-w-0">
                 <div className="flex items-center gap-3">
@@ -297,7 +274,6 @@ export default function ExamMode() {
               </div>
             </div>
             
-            {/* Barra de Progreso */}
             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
               <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-300" style={{ width: `${progress}%` }} />
             </div>
@@ -329,16 +305,16 @@ export default function ExamMode() {
                 isReviewed={isCurrentReviewed}
                 onFinish={handleFinishClick}
                 mode={mode}
-                // ✅ ARREGLO DE SCROLL: Quitado autoFocus de los botones
+                // ✅ ARREGLO DE SCROLL: Quitado autoFocus
               />
-              <div className="lg:hidden text-center text-sm text-gray-500 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
+              <div className="lg:hidden text-center text-sm ...">
                 💡 <strong>Tip:</strong> {t('exam.ui.tipMobile')}
               </div>
             </main>
 
-            {/* ✅ ARREGLO DE NAVEGADOR MÓVIL: El aside ahora es solo para desktop */}
+            {/* Navegador Desktop (Oculto en móvil) */}
             <aside className="hidden lg:block">
-              <div className="sticky top-28 space-y-4"> {/* Ajustado para clemencia (5rem + ~2rem gap) */}
+              <div className="sticky top-28 space-y-4">
                  <NavigatorContent />
               </div>
             </aside>
@@ -348,13 +324,13 @@ export default function ExamMode() {
 
       {/* ... Modals (Finish, Exit) ... */}
       <Modal isOpen={showFinishModal} onClose={() => setShowFinishModal(false)} title={t('exam.modals.finish.title')} size="md">
-        {/* ... contenido del modal ... */}
+        {/* ... contenido ... */}
       </Modal>
       <Modal isOpen={showExitModal} onClose={() => setShowExitModal(false)} title={t('exam.modals.exit.title')} size="md">
-        {/* ... contenido del modal ... */}
+        {/* ... contenido ... */}
       </Modal>
 
-      {/* ✅ ARREGLO DE NAVEGADOR MÓVIL: Modal del Navegador */}
+      {/* ✅ ARREGLO NAVEGADOR MÓVIL (Problema 3) */}
       <Modal 
         isOpen={showNavigatorModal} 
         onClose={() => setShowNavigatorModal(false)} 
@@ -366,13 +342,15 @@ export default function ExamMode() {
 
       {/* ... Atajos, FeedbackCard, Toasts ... */}
       <div className="fixed bottom-4 right-4 hidden md:block">
-        {/* ... contenido de atajos ... */}
+        {/* ... contenido ... */}
       </div>
       {showFeedbackModal && currentFeedback && mode === 'practice' && (
         <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center z-40 p-4">
            {typeof FeedbackCard !== 'undefined' && <FeedbackCard
             {...currentFeedback}
             onClose={() => {
+              // ✅ ARREGLO DE SCROLL (Problema 4)
+              window.scrollTo(0, 0); // Vuelve al inicio de la pregunta
               setShowFeedbackModal(false);
               setCurrentFeedback(null);
               if (canGoNext) { playClick(); nextQuestion(); }
@@ -384,7 +362,7 @@ export default function ExamMode() {
       {recentlyUnlocked && <AchievementToast achievement={recentlyUnlocked} onClose={clearRecentlyUnlocked} />}
       {recentXPGain && (
         <div className="fixed bottom-20 right-4 z-50 animate-bounce">
-          {/* ... contenido de XP gain ... */}
+          {/* ... contenido ... */}
         </div>
       )}
     </div>

@@ -1,4 +1,3 @@
-// src/pages/StudyMode.jsx
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useFlashcards } from '@/hooks/useFlashcards';
@@ -16,7 +15,7 @@ export default function StudyMode() {
   const { subjectId } = useParams();
   const navigate = useNavigate();
   const [showExitModal, setShowExitModal] = useState(false);
-  const [showNavigator, setShowNavigator] = useState(false);
+  const [showNavigatorModal, setShowNavigatorModal] = useState(false); // ✅ Reemplaza showNavigator
   const { t, language } = useLanguage();
 
   const { 
@@ -65,7 +64,7 @@ export default function StudyMode() {
       playFlashcardFlip();
       flipCard();
     },
-    () => setShowNavigator(prev => !prev)
+    () => {} // Quitamos el swipe-down
   );
 
   useEffect(() => {
@@ -119,7 +118,6 @@ export default function StudyMode() {
     if (sessionId) {
       try {
         await dbManager.deleteFlashcardProgress(sessionId);
-        console.log('🗑️ Sesión de flashcards limpiada');
       } catch (error) {
         console.error('Error limpiando sesión:', error);
       }
@@ -151,6 +149,21 @@ export default function StudyMode() {
     reset();
   };
 
+  // Componente interno para el navegador (reutilizable)
+  const NavigatorContent = () => (
+    <FlashcardNavigator
+      cards={cards}
+      currentIndex={currentIndex}
+      markedCards={markedCards}
+      studiedCards={studiedCards}
+      onGoToCard={(index) => {
+        playClick();
+        goToCard(index);
+        setShowNavigatorModal(false); // Cierra el modal
+      }}
+    />
+  );
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-900 dark:to-purple-900 transition-colors duration-300">
@@ -175,10 +188,12 @@ export default function StudyMode() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-900 dark:to-pink-900 transition-colors duration-300">
+    // ✅ ARREGLO DE OVERFLOW (Problema 7)
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-900 dark:to-pink-900 transition-colors duration-300 overflow-x-hidden">
       
-      {/* 2. Usar el nuevo Header Inmersivo */}
+      {/* ✅ 2. Usar el nuevo Header Inmersivo */}
       <ImmersiveHeader>
+        {/* ✅ ARREGLO BOTÓN DE SALIR (Problema 6) */}
         <Button
           variant="secondary"
           size="sm"
@@ -187,21 +202,21 @@ export default function StudyMode() {
         >
           ← {t('common.exit')}
         </Button>
+        {/* ✅ ARREGLO NAVEGADOR MÓVIL (Problema 6) */}
         <Button
           variant="secondary"
           size="sm"
-          onClick={() => setShowNavigator(!showNavigator)}
+          onClick={() => setShowNavigatorModal(true)}
           className="lg:hidden"
         >
-          🗂️ {showNavigator ? t('exam.ui.hide') : t('study.ui.navigatorTitle')}
+          🗂️ {t('study.ui.navigatorTitle')}
         </Button>
       </ImmersiveHeader>
 
-      {/* 3. Nueva "Cabecera de Contexto" Sticky */}
+      {/* ✅ 3. Nueva "Cabecera de Contexto" Sticky (Eliminado el duplicado) */}
       <div className="sticky top-16 md:top-20 z-30 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b-2 border-indigo-200 dark:border-indigo-700 shadow-md transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 py-4 space-y-3">
           
-          {/* Info y SaveIndicator (Movido aquí) */}
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-3 min-w-0">
               <span className="text-3xl">{subjectIcon}</span>
@@ -219,16 +234,14 @@ export default function StudyMode() {
             </div>
           </div>
 
-          {/* Barra de Progreso (Movida aquí) */}
           <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 dark:from-indigo-600 dark:via-purple-600 dark:to-pink-600 rounded-lg p-3">
             <div className="flex items-center justify-between text-white">
               <div className="text-right flex-1">
+                {/* ✅ ARREGLO DE TRADUCCIÓN (Problema 3, 10) */}
                 <div className="text-lg font-bold">
-                  {/* ✅ ARREGLO DE TRADUCCIÓN */}
                   {t('study.ui.cardCurrent')} {currentIndex + 1} / {totalCards}
                 </div>
                 <div className="text-xs opacity-90">
-                  {/* ✅ ARREGLO DE TRADUCCIÓN */}
                   {studiedCards.size} {t('study.ui.progress')} • {Math.round((studiedCards.size / totalCards) * 100)}%
                 </div>
               </div>
@@ -246,6 +259,8 @@ export default function StudyMode() {
           </div>
         </div>
       </div>
+
+      {/* ✅ ARREGLO DE LAYOUT: Eliminado el header duplicado de aquí */}
 
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="lg:hidden mb-6">
@@ -286,7 +301,6 @@ export default function StudyMode() {
                   disabled={currentIndex === 0}
                   variant="secondary"
                   className="min-h-[44px]"
-                  // ✅ ARREGLO DE SCROLL: Quitado autoFocus
                 >
                   ← {t('common.back')}
                 </Button>
@@ -298,7 +312,6 @@ export default function StudyMode() {
                   disabled={currentIndex === totalCards - 1}
                   variant="secondary"
                   className="min-h-[44px]"
-                  // ✅ ARREGLO DE SCROLL: Quitado autoFocus
                 >
                   {t('common.next')} →
                 </Button>
@@ -328,24 +341,16 @@ export default function StudyMode() {
             </div>
           </main>
 
-          <aside className={`${showNavigator ? 'block' : 'hidden'} lg:block`}>
-             {/* 4. Ajustar el top- sticky */}
-            <div className="sticky top-28"> {/* Ajustado de top-24 a top-28 */}
-              <FlashcardNavigator
-                cards={cards}
-                currentIndex={currentIndex}
-                markedCards={markedCards}
-                studiedCards={studiedCards}
-                onGoToCard={(index) => {
-                  playClick();
-                  goToCard(index);
-                }}
-              />
+          {/* Navegador Desktop (Oculto en móvil) */}
+          <aside className="hidden lg:block">
+            <div className="sticky top-28">
+              <NavigatorContent />
             </div>
           </aside>
         </div>
       </div>
 
+      {/* Modal de Salida */}
       <Modal
         isOpen={showExitModal}
         onClose={() => setShowExitModal(false)}
@@ -371,6 +376,17 @@ export default function StudyMode() {
         </div>
       </Modal>
 
+      {/* ✅ ARREGLO NAVEGADOR MÓVIL (Problema 6) */}
+      <Modal 
+        isOpen={showNavigatorModal} 
+        onClose={() => setShowNavigatorModal(false)} 
+        title={t('study.ui.navigatorTitle')}
+        size="lg"
+      >
+        <NavigatorContent />
+      </Modal>
+
+      {/* Atajos de teclado */}
       <div className="fixed bottom-4 right-4 hidden md:block">
         <div className="bg-gray-900/90 dark:bg-gray-800/90 text-white text-xs rounded-lg p-3 shadow-xl max-w-xs">
           <div className="font-bold mb-2">⌨️ {t('exam.shortcuts.title')}:</div>
