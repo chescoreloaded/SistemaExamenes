@@ -3,6 +3,7 @@ import { AnimatePresence } from 'framer-motion';
 import { PageTransition } from './components/common/PageTransition';
 import { SoundProvider } from './context/SoundContext';
 import { LanguageProvider } from './context/LanguageContext';
+import { useEffect } from 'react'; // ✅ 1. Importar useEffect
 
 // Layouts
 import MainLayout from './components/layout/MainLayout';
@@ -15,7 +16,20 @@ import Results from './pages/Results';
 import ReviewMode from './pages/ReviewMode';
 import Analytics from './pages/Analytics';
 import CourseExplorer from './pages/CourseExplorer';
-import CourseDetails from './pages/CourseDetails'; // ✅ IMPORTACIÓN NUEVA
+import CourseDetails from './pages/CourseDetails';
+
+// ✅ 2. Componente de Scroll
+// Este componente arreglará el Problema 2 (scroll descentrado)
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]); // Se ejecuta CADA VEZ que la ruta cambia
+
+  return null;
+}
+
 
 // Wrapper interno para rutas con animaciones específicas
 function AnimatedRoutes() {
@@ -30,7 +44,6 @@ function AnimatedRoutes() {
           <Route path="/" element={<Home />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/explorer" element={<CourseExplorer />} />
-          {/* ✅ NUEVA RUTA AGREGADA */}
           <Route path="/course/:subjectId" element={<CourseDetails />} />
         </Route>
         
@@ -69,6 +82,7 @@ function App() {
     <LanguageProvider>
       <SoundProvider>
         <Router>
+          <ScrollToTop /> {/* ✅ 3. Añadir el componente aquí */}
           <AnimatedRoutes />
         </Router>
       </SoundProvider>
