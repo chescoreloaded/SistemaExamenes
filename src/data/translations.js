@@ -27,11 +27,15 @@ export const TRANSLATIONS = {
       minutes: 'min',
       passingScore: 'para aprobar',
       progress: 'Progreso',
+      // ✅ --- INICIO DE CAMBIOS ---
+      navigator: 'Navegador',
+      stats: 'Estadísticas',
+      navigationAndStats: 'Navegación y Estadísticas',
+      // ✅ --- FIN DE CAMBIOS ---
       difficulty: {
-        basic: 'Básico',       // ✅ Claves normalizadas a minúsculas
+        basic: 'Básico',
         intermediate: 'Intermedio',
         advanced: 'Avanzado',
-        // Fallbacks por compatibilidad
         basico: 'Básico',
         intermedio: 'Intermedio',
         avanzado: 'Avanzado'
@@ -134,7 +138,7 @@ export const TRANSLATIONS = {
       stats: {
         title: 'Estadísticas',
         accuracy: 'Precisión',
-        streak: 'Racha',
+        streak: 'Racha Diaria',
         totalXp: 'XP Total',
         days: 'días',
         correctCount: 'correctas'
@@ -142,16 +146,15 @@ export const TRANSLATIONS = {
       modals: {
         finish: {
           title: '⚠️ Confirmar Envío',
-          prefix: 'Tienes',
-          suffix: 'pregunta(s) sin responder.',
-          confirm: '¿Seguro que quieres terminar?',
+          // ✅ CAMBIO: Claves anidadas para interpolación
+          body: 'Tienes {count} pregunta(s) sin responder. ¿Seguro que quieres terminar?',
           btn: 'Sí, Terminar'
         },
         exit: {
           title: '⚠️ Salir del Examen',
-          examWarning: 'Tu progreso se guardará, pero no podrás reanudar este examen.',
-          practiceWarning: 'Perderás el progreso de esta sesión.',
-          confirm: '¿Seguro que quieres salir?',
+          body: 'Tu progreso se guardará, pero no podrás reanudar este examen. ¿Seguro que quieres salir?', // Asumiendo modo examen por defecto
+          examWarning: 'Tu progreso se guardará, pero no podrás reanudar este examen. ¿Seguro que quieres salir?',
+          practiceWarning: 'Perderás el progreso de esta sesión. ¿Seguro que quieres salir?',
           btn: 'Sí, Salir'
         }
       },
@@ -159,7 +162,7 @@ export const TRANSLATIONS = {
         title: 'Atajos',
         nav: 'Navegar',
         select: 'Seleccionar',
-        mark: 'Marcar',
+        mark: 'Mark',
         next: 'Siguiente'
       },
       feedback: {
@@ -192,7 +195,13 @@ export const TRANSLATIONS = {
         mark: 'Marcar',
         flip: 'Girar',
         progress: 'estudiadas',
-        tip: 'Espacio/Enter para girar, ← → navegar'
+        tip: 'Espacio/Enter para girar, ← → navegar',
+        // ✅ --- INICIO DE CAMBIOS ---
+        cardCurrent: 'Tarjeta',
+        cardStudied: 'Estudiada',
+        cardMarked: 'Marcada',
+        cardPending: 'Pendiente'
+        // ✅ --- FIN DE CAMBIOS ---
       },
       modals: {
         exit: {
@@ -241,7 +250,17 @@ export const TRANSLATIONS = {
         currentTitle: 'Racha Actual',
         best: 'Mejor',
         days: 'días',
+        // ✅ --- INICIO DE CAMBIOS ---
+        correct: 'Racha de Correctas',
+        consecutiveAnswers: 'respuestas consecutivas',
         messages: {
+          correct: {
+            start: '¡Racha iniciada!',
+            good: '¡Sigue así!',
+            great: '¡Gran racha!',
+            legendary: '¡Imparable!'
+          },
+          // ✅ --- FIN DE CAMBIOS ---
           daily: {
             keepGoing: '¡Sigue así!',
             great: '¡Gran racha!',
@@ -324,8 +343,13 @@ export const TRANSLATIONS = {
       minutes: 'min',
       passingScore: 'to pass',
       progress: 'Progress',
+      // ✅ --- INICIO DE CAMBIOS ---
+      navigator: 'Navigator',
+      stats: 'Statistics',
+      navigationAndStats: 'Navigation & Statistics',
+      // ✅ --- FIN DE CAMBIOS ---
       difficulty: {
-        basic: 'Basic',        // ✅ Normalized keys
+        basic: 'Basic',
         intermediate: 'Intermediate',
         advanced: 'Advanced'
       },
@@ -435,16 +459,14 @@ export const TRANSLATIONS = {
       modals: {
         finish: {
           title: '⚠️ Confirm Submission',
-          prefix: 'You have',
-          suffix: 'unanswered question(s).',
-          confirm: 'Are you sure you want to submit?',
+          body: 'You have {count} unanswered question(s). Are you sure you want to submit?',
           btn: 'Yes, Submit'
         },
         exit: {
           title: '⚠️ Exit Exam',
-          examWarning: 'Your progress will be saved, but you cannot resume.',
-          practiceWarning: 'Progress for this session will be lost.',
-          confirm: 'Are you sure you want to exit?',
+          body: 'Your progress will be saved, but you cannot resume. Are you sure you want to exit?',
+          examWarning: 'Your progress will be saved, but you cannot resume. Are you sure you want to exit?',
+          practiceWarning: 'Progress for this session will be lost. Are you sure you want to exit?',
           btn: 'Yes, Exit'
         }
       },
@@ -485,7 +507,13 @@ export const TRANSLATIONS = {
         mark: 'Mark',
         flip: 'Flip',
         progress: 'studied',
-        tip: 'Space/Enter to flip, ← → navigate'
+        tip: 'Space/Enter to flip, ← → navigate',
+        // ✅ --- INICIO DE CAMBIOS ---
+        cardCurrent: 'Current Card',
+        cardStudied: 'Studied',
+        cardMarked: 'Marked',
+        cardPending: 'Pending'
+        // ✅ --- FIN DE CAMBIOS ---
       },
       modals: {
         exit: {
@@ -534,7 +562,17 @@ export const TRANSLATIONS = {
         currentTitle: 'Current Streak',
         best: 'Best',
         days: 'days',
+        // ✅ --- INICIO DE CAMBIOS ---
+        correct: 'Correct Streak',
+        consecutiveAnswers: 'consecutive answers',
         messages: {
+          correct: {
+            start: 'Streak started!',
+            good: 'Keep it up!',
+            great: 'Great streak!',
+            legendary: 'Unstoppable!'
+          },
+          // ✅ --- FIN DE CAMBIOS ---
           daily: {
             keepGoing: 'Keep it up!',
             great: 'Great streak!',
@@ -574,7 +612,7 @@ export const TRANSLATIONS = {
         lastMonth: 'Last 30 days'
       },
       history: {
-        title: 'History',
+        title: 'Historial',
         columns: { date: 'Date', subject: 'Subject', score: 'Score', status: 'Status' },
         status: { passed: 'Passed', failed: 'Failed' }
       },
