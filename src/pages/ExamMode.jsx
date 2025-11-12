@@ -7,24 +7,23 @@ import { usePoints } from '../hooks/usePoints';
 import { useAchievements } from '../hooks/useAchievements';
 import { useStreak } from '../hooks/useStreak';
 import { useSoundContext } from '../context/SoundContext';
-import { useDarkMode } from '../hooks/useDarkMode';
-import { useLanguage } from '../context/LanguageContext'; // ✅ Importar hook
+import { useLanguage } from '../context/LanguageContext';
 import { useConfetti } from '../hooks/useConfetti';
 import {
   QuestionNavigator, NavigationControls, FeedbackCard
 } from '../components/exam';
 import QuestionCard from '../components/exam/QuestionCard';
-import { Loading, Modal, Button, Breadcrumbs, SoundControl, DarkModeToggle, SkeletonLoader } from '../components/common';
+import { Loading, Modal, Button, SkeletonLoader } from '../components/common';
 import { SaveIndicator } from '../components/common/SaveIndicator';
 import { AchievementToast, LevelProgressBar, StreakDisplay } from '../components/gamification';
-import HeaderControls from '@/components/layout/HeaderControls';
+import { ImmersiveHeader } from '@/components/layout';
 
 
 export default function ExamMode() {
   const { subjectId } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { t, language } = useLanguage(); // ✅ Usar hook
+  const { t, language } = useLanguage();
   const mode = searchParams.get('mode') || 'exam';
 
   const [showFinishModal, setShowFinishModal] = useState(false);
@@ -35,22 +34,18 @@ export default function ExamMode() {
   const { canvasRef, showConfetti } = useConfetti();
   const { setCurrentSubject, addRecentSubject } = useExamStore();
 
-  // Hook principal - Asumimos que useExam ya maneja internamente el idioma si fue actualizado,
-  // pero si necesita el idioma explícitamente, sería: useExam(subjectId, mode, language);
-const {
+  const {
     questions, config, currentQuestion, currentIndex, answers, reviewedQuestions,
     isLoading, error, isFinished, results, timeRemaining, timerRunning, progress,
     answeredCount, totalQuestions, currentAnswer, isCurrentCorrect,
     isCurrentReviewed, canGoNext, canGoPrevious, saveStatus,
     selectAnswer, nextQuestion, previousQuestion, goToQuestion, toggleReview, finishExam
-  } = useExam(subjectId, mode, language); // ✅ ¡IMPORTANTE! Pasar 'language' aquí
+  } = useExam(subjectId, mode, language);
 
-  // ... (hooks de gamificación y UX se mantienen igual) ...
   const { points, formattedStats, addAnswerXP, addExamXP, recentXPGain, clearRecentXPGain } = usePoints();
   const { recentlyUnlocked, checkAchievements, clearRecentlyUnlocked } = useAchievements();
   const { correctStreak, dailyStreak, handleAnswer, updateDailyStreak, getStreakMultiplier, getStreakMessage } = useStreak();
-  const { playCorrect, playIncorrect, playAchievement, playStreak, playExamCompleteSuccess, playExamCompleteFail, playClick, isMuted, volume, toggleMute, changeVolume, playTest } = useSoundContext();
-  const { isDark, toggle: toggleDarkMode } = useDarkMode();
+  const { playCorrect, playIncorrect, playAchievement, playStreak, playExamCompleteSuccess, playExamCompleteFail, playClick } = useSoundContext();
 
   const handleSelectAnswer = useCallback(async (answerIndex) => {
     if (!currentQuestion) return;
@@ -65,7 +60,6 @@ const {
 
       const xpData = await addAnswerXP(isCorrect, question.difficulty || 'basico', streakData ? streakData.current : 0);
       
-      // Check achievements...
       const stats = {
         totalCorrectAnswers: points.totalCorrectAnswers + (isCorrect ? 1 : 0),
         totalWrongAnswers: points.totalWrongAnswers + (!isCorrect ? 1 : 0),
@@ -88,7 +82,6 @@ const {
     }
   }, [currentIndex, questions, currentQuestion, selectAnswer, mode, playCorrect, playIncorrect, handleAnswer, playStreak, addAnswerXP, points, dailyStreak, checkAchievements, playAchievement, getStreakMultiplier, showConfetti]);
 
-  // ... (useSwipe, useEffects se mantienen igual) ...
   useSwipe(
     () => { if (canGoNext) { playClick(); nextQuestion(); } },
     () => { if (canGoPrevious) { playClick(); previousQuestion(); } },
@@ -109,7 +102,6 @@ const {
     }
   }, [isFinished, results, navigate, subjectId]);
 
-  // ... (handleKeyPress se mantiene igual) ...
   useEffect(() => {
     const handleKeyPress = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
@@ -183,24 +175,28 @@ const {
 
   if (isLoading) return <SkeletonLoader type="exam-page" />;
 
-  // ✅ Breadcrumbs traducidos
-  const breadcrumbItems = [
-    { label: t('common.home'), href: '/', icon: '🏠' },
-    { label: config?.name || t('common.subjects'), href: '/', icon: config?.icon || '📚' },
-    { label: mode === 'exam' ? t('exam.modes.exam') : t('exam.modes.practice'), icon: mode === 'exam' ? '📝' : '🎯' }
-  ];
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 transition-colors duration-300">
       <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-50" style={{ width: '100%', height: '100%' }} />
-      <Breadcrumbs items={breadcrumbItems} />
+      
+      {/* ✅ 2. Usar el nuevo Header Inmersivo */}
+      <ImmersiveHeader>
+        {/* Pasamos los botones de acción como children (rightSlot) */}
+        <Button variant="secondary" size="sm" onClick={() => { playClick(); setShowExitModal(true); }} className="hidden sm:flex">
+          ← {t('exam.ui.exitBtn')}
+        </Button>
+        <Button variant="secondary" size="sm" onClick={() => { playClick(); setShowNavigator(!showNavigator); }} className="lg:hidden">
+          🗂️ {showNavigator ? t('exam.ui.hide') : t('exam.ui.navigator')}
+        </Button>
+      </ImmersiveHeader>
 
       <div className="relative">
-        {/* Header */}
-        <div className="sticky top-0 z-40 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b-2 border-gray-200 dark:border-gray-700 shadow-md transition-colors duration-300">
-          <div className="max-w-7xl mx-auto px-4 py-4">
-            {/* Gamification Header */}
-            <div className="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* ✅ 3. Nueva "Cabecera de Contexto" Sticky */}
+        <div className="sticky top-16 md:top-20 z-30 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b-2 border-gray-200 dark:border-gray-700 shadow-md transition-colors duration-300">
+          <div className="max-w-7xl mx-auto px-4 py-4 space-y-4">
+            
+            {/* Gamification Header (Movido aquí) */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="md:col-span-2">
                 <LevelProgressBar
                   level={points.level}
@@ -216,16 +212,16 @@ const {
               <StreakDisplay current={correctStreak.current} best={correctStreak.best} type="correct" compact={true} />
             </div>
 
-            {/* Streak Banner */}
+            {/* Streak Banner (Movido aquí) */}
             {mode === 'practice' && correctStreak.current >= 3 && getStreakMessage() && (
-              <div className="mb-4 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg p-3 text-center shadow-lg animate-pulse">
+              <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg p-3 text-center shadow-lg animate-pulse">
                 <span className="text-2xl mr-2">{getStreakMessage().emoji}</span>
                 <span className="font-bold">{getStreakMessage().text}</span>
                 <span className="ml-2 text-sm opacity-90">(×{getStreakMultiplier()} XP)</span>
               </div>
             )}
 
-            {/* Controls Header */}
+            {/* Controls Header (Movido aquí) */}
             <div className="flex items-center justify-between gap-4 flex-wrap">
               <div className="flex items-center gap-4 flex-1 min-w-0">
                 <div className="flex items-center gap-3">
@@ -233,7 +229,6 @@ const {
                   <div className="min-w-0">
                     <h1 className="text-lg font-bold text-gray-800 dark:text-white truncate">{config?.name || 'Exam'}</h1>
                     <p className="text-xs text-gray-600 dark:text-gray-400">
-                      {/* ✅ Modo traducido */}
                       {mode === 'exam' ? `📝 ${t('exam.modes.exam')}` : `🎯 ${t('exam.modes.practice')}`}
                     </p>
                   </div>
@@ -256,22 +251,13 @@ const {
               <div className="hidden lg:block">
                  {typeof SaveIndicator !== 'undefined' && <SaveIndicator status={saveStatus} />}
               </div>
-              <div className="flex items-center gap-2">
-                <HeaderControls />
-                <div className="h-5 w-px bg-gray-300 dark:bg-gray-700 hidden sm:block ml-1"></div>
-                {/* ✅ Botones traducidos */}
-                <Button variant="secondary" size="sm" onClick={() => { playClick(); setShowExitModal(true); }} className="hidden sm:flex">
-                  ← {t('exam.ui.exitBtn')}
-                </Button>
-                <Button variant="secondary" size="sm" onClick={() => { playClick(); setShowNavigator(!showNavigator); }} className="lg:hidden">
-                  🗂️ {showNavigator ? t('exam.ui.hide') : t('exam.ui.navigator')}
-                </Button>
-              </div>
             </div>
-            <div className="mt-3 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+            
+            {/* Barra de Progreso (Movida aquí) */}
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
               <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-300" style={{ width: `${progress}%` }} />
             </div>
-            <div className="lg:hidden mt-2 flex justify-center">
+            <div className="lg:hidden flex justify-center">
               {typeof SaveIndicator !== 'undefined' && <SaveIndicator status={saveStatus} />}
             </div>
           </div>
@@ -300,20 +286,19 @@ const {
                 onFinish={handleFinishClick}
                 mode={mode}
               />
-              {/* ✅ Tip traducido */}
               <div className="lg:hidden text-center text-sm text-gray-500 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
                 💡 <strong>Tip:</strong> {t('exam.ui.tipMobile')}
               </div>
             </main>
 
             <aside className={`${showNavigator ? 'block' : 'hidden'} lg:block`}>
-              <div className="sticky top-24 space-y-4">
+              {/* ✅ 4. Ajustar el top- sticky para la nueva cabecera doble */}
+              <div className="sticky top-28 space-y-4"> {/* Ajustado para clemencia (5rem + ~2rem gap) */}
                  {typeof QuestionNavigator !== 'undefined' && <QuestionNavigator
                   questions={questions} currentIndex={currentIndex} answers={answers}
                   reviewedQuestions={reviewedQuestions}
                   onGoToQuestion={(index) => { playClick(); goToQuestion(index); }}
                 />}
-                {/* ✅ Stats traducidas */}
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 border-2 border-gray-100 dark:border-gray-700 transition-colors duration-300">
                   <h3 className="font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
                     📊 {t('exam.stats.title')}
@@ -373,7 +358,7 @@ const {
         </div>
       </Modal>
 
-      {/* ✅ Atajos traducidos */}
+      {/* Atajos traducidos */}
       <div className="fixed bottom-4 right-4 hidden md:block">
         <div className="bg-gray-900/90 dark:bg-gray-800/90 text-white text-xs rounded-lg p-3 shadow-xl max-w-xs">
           <div className="font-bold mb-2">⌨️ {t('exam.shortcuts.title')}:</div>

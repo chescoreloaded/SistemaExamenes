@@ -15,6 +15,7 @@ import Results from './pages/Results';
 import ReviewMode from './pages/ReviewMode';
 import Analytics from './pages/Analytics';
 import CourseExplorer from './pages/CourseExplorer';
+import CourseDetails from './pages/CourseDetails'; // ✅ IMPORTACIÓN NUEVA
 
 // Wrapper interno para rutas con animaciones específicas
 function AnimatedRoutes() {
@@ -24,15 +25,16 @@ function AnimatedRoutes() {
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         
-        {/* ✅ RUTAS PRINCIPALES (Usan MainLayout) */}
-        {/* El layout ya maneja la transición base "fade" para sus hijos */}
+        {/* ✅ RUTAS PRINCIPALES (Usan MainLayout - Zonas Seguras) */}
         <Route element={<MainLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/explorer" element={<CourseExplorer />} />
+          {/* ✅ NUEVA RUTA AGREGADA */}
+          <Route path="/course/:subjectId" element={<CourseDetails />} />
         </Route>
         
-        {/* 🚀 RUTAS INMERSIVAS (Headers personalizados, transiciones específicas) */}
+        {/* 🚀 RUTAS INMERSIVAS (Headers personalizados, sin distracción) */}
         <Route path="/exam/:subjectId" element={
           <PageTransition type="slideLeft">
             <ExamMode />

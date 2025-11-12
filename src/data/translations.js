@@ -9,7 +9,7 @@ export const TRANSLATIONS = {
       error: 'Error',
       retry: 'Reintentar',
       subjects: 'Materias',
-      start: 'Comenzar',
+      start: 'Explorar',
       continue: 'Continuar',
       results: 'Resultados',
       home: 'Inicio',
@@ -22,70 +22,97 @@ export const TRANSLATIONS = {
       next: 'Siguiente',
       finish: 'Finalizar',
       total: 'Total',
+      hours: 'h',
+      categories: 'categorías',
+      minutes: 'min',
+      passingScore: 'para aprobar',
+      progress: 'Progreso',
       difficulty: {
+        basic: 'Básico',       // ✅ Claves normalizadas a minúsculas
+        intermediate: 'Intermedio',
+        advanced: 'Avanzado',
+        // Fallbacks por compatibilidad
         basico: 'Básico',
         intermedio: 'Intermedio',
         avanzado: 'Avanzado'
       },
       filters: {
-            academicLevel: 'Nivel Académico',
-            difficulty: 'Dificultad',
-            allOptions: 'Todas las opciones',
-            year: 'Año / Grado',  // ✅ NUEVO
-            period: 'Periodo'     // ✅ NUEVO
-        },
-        pagination: {
-            previous: 'Anterior',
-            next: 'Siguiente',
-            pageOf: 'Página {current} de {total}', // Usaremos reemplazo simple
-            showing: 'Mostrando {start}-{end} de {total} resultados'
-        }
+        academicLevel: 'Nivel Académico',
+        difficulty: 'Dificultad',
+        allOptions: 'Todas las opciones',
+        year: 'Año / Grado',
+        period: 'Periodo'
+      },
+      pagination: {
+        previous: 'Anterior',
+        next: 'Siguiente',
+        pageOf: 'Página {current} de {total}',
+        showing: 'Mostrando {start}-{end} de {total} resultados'
+      }
     },
-    navigation: { // ✅ NUEVA SECCIÓN
+    navigation: {
       home: 'Mis Cursos',
       explorer: 'Explorar',
       analytics: 'Progreso'
     },
+    course: {
+      chooseModeTitle: '¿Cómo quieres aprender hoy?',
+      categoriesTitle: 'Contenido del Curso',
+      additionalInfo: 'Información Adicional',
+      institution: 'Institución',
+      instructor: 'Instructor',
+      curriculum: 'Plan de Estudios',
+      stats: {
+        bestScore: 'Mejor Nota',
+        attempts: 'Intentos',
+        avgScore: 'Promedio',
+        totalXp: 'XP Ganado'
+      }
+    },
     home: {
+      welcomeTitle: 'Bienvenido a InovaCode',
+      welcomeSubtitle: 'Tu plataforma de aprendizaje gamificado. Selecciona un curso o explora el catálogo completo.',
       noSubjects: 'No hay materias disponibles',
       noSubjectsSub: 'Agrega materias para comenzar a crear exámenes',
+      exploreMore: 'Explorar Catálogo Completo',
       modes: {
         exam: {
           title: 'Modo Examen',
-          desc: 'Practica con tiempo límite y obtén tu calificación final',
-          features: '⏱️ Cronómetro • 📊 Calificación'
+          desc: 'Evaluación formal con tiempo límite y calificación final.',
+          features: '⏱️ Cronómetro • 📊 Resultados'
         },
         practice: {
           title: 'Modo Práctica',
-          desc: 'Aprende con feedback instantáneo y sin presión de tiempo',
-          features: '✅ Respuestas inmediatas • 💡 Explicaciones'
+          desc: 'Aprende a tu ritmo con retroalimentación inmediata.',
+          features: '✅ Feedback • 💡 Sin presión'
         },
         study: {
           title: 'Modo Estudio',
-          desc: 'Repasa con flashcards interactivas y memoriza conceptos clave',
-          features: '🔄 Flip animado • 🎲 Aleatorio'
+          desc: 'Memoriza conceptos clave usando tarjetas interactivas.',
+          features: '🔄 Flip activo • 🧠 Optimizado'
         }
       },
       actions: {
-        examBtn: 'Modo Examen',
-        practiceBtn: 'Práctica',
-        studyBtn: 'Estudio'
+        examBtn: 'Iniciar Examen',
+        practiceBtn: 'Practicar Ahora',
+        studyBtn: 'Estudiar Tarjetas'
       },
       stats: {
-        baseXp: 'XP Base',
-        hours: 'Horas',
-        level: 'Nivel'
+        baseXp: 'XP',
+        hours: 'H',
+        stars: 'Estrellas'
       }
     },
     search: {
       placeholder: 'Buscar por nombre o descripción...'
     },
-explorer: {
+    explorer: {
       title: 'Explorar Cursos',
       subtitle: 'Descubre todo nuestro catálogo académico',
       resultsFound: 'cursos encontrados',
       noResults: 'No encontramos cursos',
-      tryChangingFilters: 'Intenta ajustar tus filtros o términos de búsqueda'
+      tryChangingFilters: 'Intenta ajustar tus filtros o términos de búsqueda',
+      clearFilters: 'Limpiar Filtros'
     },
     exam: {
       modes: {
@@ -95,7 +122,7 @@ explorer: {
       ui: {
         navigator: 'Navegador',
         hide: 'Ocultar',
-        tipMobile: 'Tip: Desliza ← → para navegar, ↓ para navegador',
+        tipMobile: 'Tip: Desliza ← → para navegar',
         exitBtn: 'Salir',
         legend: {
           current: 'Actual',
@@ -107,7 +134,7 @@ explorer: {
       stats: {
         title: 'Estadísticas',
         accuracy: 'Precisión',
-        streak: 'Racha Diaria',
+        streak: 'Racha',
         totalXp: 'XP Total',
         days: 'días',
         correctCount: 'correctas'
@@ -117,42 +144,41 @@ explorer: {
           title: '⚠️ Confirmar Envío',
           prefix: 'Tienes',
           suffix: 'pregunta(s) sin responder.',
-          confirm: '¿Estás seguro de que quieres terminar el examen?',
+          confirm: '¿Seguro que quieres terminar?',
           btn: 'Sí, Terminar'
         },
         exit: {
           title: '⚠️ Salir del Examen',
-          examWarning: 'Si sales ahora, tu progreso se guardará localmente pero no podrás reanudar este examen.',
-          practiceWarning: 'Si sales ahora, perderás el progreso de esta sesión.',
-          confirm: '¿Estás seguro de que quieres salir?',
+          examWarning: 'Tu progreso se guardará, pero no podrás reanudar este examen.',
+          practiceWarning: 'Perderás el progreso de esta sesión.',
+          confirm: '¿Seguro que quieres salir?',
           btn: 'Sí, Salir'
         }
       },
       shortcuts: {
-        title: 'Atajos de Teclado',
+        title: 'Atajos',
         nav: 'Navegar',
-        select: 'Seleccionar Opción',
-        mark: 'Marcar Revisión',
-        next: 'Siguiente (Práctica)'
+        select: 'Seleccionar',
+        mark: 'Marcar',
+        next: 'Siguiente'
       },
       feedback: {
         correct: {
           title: '¡Correcto!',
-          subtitle: '¡Excelente trabajo! Sigue así 💪'
+          subtitle: '¡Sigue así! 💪'
         },
         incorrect: {
           title: 'Incorrecto',
-          subtitle: 'No te preocupes, ¡de los errores se aprende! 🧠'
+          subtitle: '¡De los errores se aprende! 🧠'
         },
         labels: {
           question: 'PREGUNTA',
           yourAnswer: 'Tu respuesta:',
-          correctAnswer: 'Respuesta correcta:',
-          yourCorrectAnswer: 'Tu respuesta correcta:'
+          correctAnswer: 'Respuesta correcta:'
         },
         actions: {
-          seeExplanation: 'Ver explicación detallada',
-          hideExplanation: 'Ocultar explicación',
+          seeExplanation: 'Ver explicación',
+          hideExplanation: 'Ocultar',
           continue: 'Continuar'
         }
       }
@@ -160,22 +186,18 @@ explorer: {
     study: {
       title: 'Modo Estudio',
       ui: {
-        navigatorTitle: 'Navegación de Tarjetas',
+        navigatorTitle: 'Navegación',
         shuffle: 'Mezclar',
         reset: 'Reiniciar',
         mark: 'Marcar',
         flip: 'Girar',
-        cardCurrent: 'Tarjeta actual',
-        cardStudied: 'Estudiada',
-        cardMarked: 'Marcada',
-        cardPending: 'Sin estudiar',
-        progress: 'tarjetas estudiadas',
-        tip: 'Tip: Usa Espacio/Enter para girar, ← → para navegar'
+        progress: 'estudiadas',
+        tip: 'Espacio/Enter para girar, ← → navegar'
       },
       modals: {
         exit: {
-          title: '⚠️ Salir del modo estudio',
-          text: 'Tu progreso se guardará automáticamente.\n¿Estás seguro de que quieres salir?',
+          title: '⚠️ Salir',
+          text: '¿Seguro que quieres salir?',
           confirm: 'Sí, salir',
           cancel: 'Cancelar'
         }
@@ -183,22 +205,22 @@ explorer: {
     },
     results: {
       breadcrumb: 'Resultados',
-      success: '¡Felicidades! Has aprobado',
+      success: '¡Aprobado!',
       fail: 'Sigue practicando',
-      scoreLabel: 'Puntuación final',
+      scoreLabel: 'Calificación Final',
       stats: {
         correct: 'Correctas',
         incorrect: 'Incorrectas',
         time: 'Tiempo'
       },
       actions: {
-        review: 'Ver revisión detallada de todas las preguntas',
-        home: 'Volver al inicio',
+        review: 'Revisión detallada',
+        home: 'Ir al Inicio',
         retry: 'Intentar de nuevo'
       }
     },
     review: {
-      title: 'Revisión Detallada',
+      title: 'Revisión',
       score: 'Calificación',
       filters: {
         all: 'Todas',
@@ -206,115 +228,62 @@ explorer: {
         incorrect: 'Incorrectas',
         unanswered: 'Sin responder'
       },
-      legend: {
-        correct: 'Correcta',
-        incorrect: 'Incorrecta',
-        unanswered: 'Sin responder'
-      },
       question: {
         title: 'Pregunta',
-        unansweredLabel: 'No respondiste esta pregunta',
         explanation: 'Explicación',
         yourAnswer: 'Tu respuesta',
         correctAnswer: 'Respuesta correcta'
-      },
-      nav: {
-        title: 'Navegación',
-        pregs: 'pregs.'
       }
     },
     gamification: {
       streak: {
         dailyTitle: 'Racha Diaria',
         currentTitle: 'Racha Actual',
-        best: 'Mejor racha',
+        best: 'Mejor',
         days: 'días',
-        correct: 'correctas',
-        consecutiveDays: 'días consecutivos',
-        consecutiveAnswers: 'respuestas seguidas',
-        encouragement: '💪 ¡No te rindas! Tu récord es de',
         messages: {
           daily: {
-            start: '¡Empieza tu racha hoy!',
             keepGoing: '¡Sigue así!',
             great: '¡Gran racha!',
-            unstoppable: '¡Imparable!',
             legendary: '¡LEGENDARIO!'
-          },
-          correct: {
-            start: 'Responde correctamente',
-            good: '¡Buena racha!',
-            onFire: '¡En fuego!',
-            incredible: '¡Increíble!',
-            perfect: '¡PERFECTO!'
           }
         }
       },
       level: {
         level: 'Nivel',
-        nextLevel: 'Próximo nivel',
-        progress: 'Progreso al siguiente nivel',
-        remaining: 'Faltan',
-        forNext: 'para el siguiente nivel'
+        nextLevel: 'Siguiente Nivel',
+        progress: 'Progreso',
+        remaining: 'Faltan'
       }
     },
     analytics: {
       title: 'Panel de Rendimiento',
-      subtitle: 'Análisis completo de tu rendimiento y progreso',
+      subtitle: 'Tus estadísticas de aprendizaje',
       noData: {
-        title: '¡Comienza tu viaje de aprendizaje!',
-        subtitle: 'Completa tu primer examen para ver estadísticas y análisis detallados',
-        titleFiltered: 'Sin resultados para estos filtros',
-        subtitleFiltered: 'Intenta cambiar los filtros para ver más datos',
-        chart: 'No hay datos disponibles para este gráfico'
+        title: '¡Comienza a aprender!',
+        subtitle: 'Completa exámenes para ver tus estadísticas',
+        titleFiltered: 'Sin datos',
+        subtitleFiltered: 'Ajusta los filtros'
       },
       stats: {
         totalExams: 'Total Exámenes',
-        averageScore: 'Promedio General'
+        averageScore: 'Promedio'
       },
       charts: {
-        performance: {
-          title: 'Rendimiento a lo Largo del Tiempo',
-          scoreLegend: 'Puntuación (%)'
-        },
-        subject: {
-          title: 'Rendimiento por Materia'
-        },
-        distribution: {
-          title: 'Distribución de Resultados',
-          correct: 'Correctas',
-          incorrect: 'Incorrectas'
-        }
+        performance: { title: 'Rendimiento', scoreLegend: 'Puntuación (%)' },
+        subject: { title: 'Por Materia' },
+        distribution: { title: 'Distribución', correct: 'Correctas', incorrect: 'Incorrectas' }
       },
       filters: {
-        clear: 'Limpiar filtros',
+        clear: 'Limpiar',
         allTime: 'Todo el tiempo',
-        lastWeek: 'Últimos 7 días',
-        lastMonth: 'Último mes',
-        last3Months: 'Últimos 3 meses',
-        lastYear: 'Último año',
-        subjectPlaceholder: 'Seleccionar materia',
-        allSubjects: 'Todas las materias'
+        lastWeek: '7 días',
+        lastMonth: '30 días'
       },
       history: {
-        title: 'Historial de Exámenes',
-        columns: {
-          date: 'Fecha',
-          subject: 'Materia',
-          score: 'Puntuación',
-          answers: 'Respuestas',
-          time: 'Tiempo',
-          status: 'Estado'
-        },
-        status: {
-          passed: 'Aprobado',
-          failed: 'Reprobado'
-        },
-        footer: {
-          totalExams: 'Total exámenes',
-          passed: 'Aprobados',
-          average: 'Promedio'
-        }
+        title: 'Historial',
+        columns: { date: 'Fecha', subject: 'Materia', score: 'Nota', status: 'Estado' },
+        status: { passed: 'Aprobado', failed: 'Reprobado' }
       },
       export: {
         button: 'Exportar PDF',
@@ -323,18 +292,10 @@ explorer: {
     },
     footer: {
       tipPrefix: 'Tip:',
-      tipText: 'Usa los atajos de teclado para navegar más rápido',
-      shortcuts: {
-        nav: 'Navegar',
-        answer: 'Responder',
-        mark: 'Marcar',
-        flip: 'Voltear',
-        exit: 'Salir'
-      }
+      tipText: 'Usa atajos de teclado',
+      shortcuts: { nav: 'Navegar', answer: 'Responder', exit: 'Salir' }
     }
   },
-  //****************************************************************************************************************************************** */
-   //****************************************************************************************************************************************** */
   en: {
     app: {
       title: 'Exam System',
@@ -345,7 +306,7 @@ explorer: {
       error: 'Error',
       retry: 'Retry',
       subjects: 'Subjects',
-      start: 'Start',
+      start: 'Explore',
       continue: 'Continue',
       results: 'Results',
       home: 'Home',
@@ -358,59 +319,81 @@ explorer: {
       next: 'Next',
       finish: 'Finish',
       total: 'Total',
+      hours: 'h',
+      categories: 'categories',
+      minutes: 'min',
+      passingScore: 'to pass',
+      progress: 'Progress',
       difficulty: {
-        basico: 'Basic',
-        intermedio: 'Intermediate',
-        avanzado: 'Advanced'
+        basic: 'Basic',        // ✅ Normalized keys
+        intermediate: 'Intermediate',
+        advanced: 'Advanced'
       },
       filters: {
-            academicLevel: 'Academic Level',
-            difficulty: 'Difficulty',
-            allOptions: 'All options',
-            year: 'Year / Grade', // ✅ NUEVO
-            period: 'Period'      // ✅ NUEVO
-        },
-        pagination: {
-            previous: 'Previous',
-            next: 'Next',
-            pageOf: 'Page {current} of {total}',
-            showing: 'Showing {start}-{end} of {total} results'
-        }
+        academicLevel: 'Academic Level',
+        difficulty: 'Difficulty',
+        allOptions: 'All options',
+        year: 'Year / Grade',
+        period: 'Period'
+      },
+      pagination: {
+        previous: 'Previous',
+        next: 'Next',
+        pageOf: 'Page {current} of {total}',
+        showing: 'Showing {start}-{end} of {total} results'
+      }
     },
-    navigation: { // ✅ NUEVA SECCIÓN
+    navigation: {
       home: 'My Courses',
       explorer: 'Explore',
       analytics: 'Progress'
     },
+    course: {
+      chooseModeTitle: 'How do you want to learn today?',
+      categoriesTitle: 'Course Content',
+      additionalInfo: 'Additional Information',
+      institution: 'Institution',
+      instructor: 'Instructor',
+      curriculum: 'Curriculum',
+      stats: {
+        bestScore: 'Best Score',
+        attempts: 'Attempts',
+        avgScore: 'Average',
+        totalXp: 'XP Earned'
+      }
+    },
     home: {
+      welcomeTitle: 'Welcome to InovaCode',
+      welcomeSubtitle: 'Your gamified learning platform. Select a course or explore the full catalog.',
       noSubjects: 'No subjects available',
       noSubjectsSub: 'Add subjects to start creating exams',
+      exploreMore: 'Explore Full Catalog',
       modes: {
         exam: {
           title: 'Exam Mode',
-          desc: 'Practice with time limit and get your final score',
-          features: '⏱️ Timer • 📊 Grading'
+          desc: 'Formal assessment with time limit and final grading.',
+          features: '⏱️ Timer • 📊 Results'
         },
         practice: {
           title: 'Practice Mode',
-          desc: 'Learn with instant feedback and no time pressure',
-          features: '✅ Instant answers • 💡 Explanations'
+          desc: 'Learn at your own pace with immediate feedback.',
+          features: '✅ Feedback • 💡 No pressure'
         },
         study: {
           title: 'Study Mode',
-          desc: 'Review with interactive flashcards and memorize key concepts',
-          features: '🔄 Animated flip • 🎲 Random'
+          desc: 'Memorize key concepts using interactive flashcards.',
+          features: '🔄 Active recall • 🧠 Optimized'
         }
       },
       actions: {
-        examBtn: 'Exam Mode',
-        practiceBtn: 'Practice',
-        studyBtn: 'Study'
+        examBtn: 'Start Exam',
+        practiceBtn: 'Practice Now',
+        studyBtn: 'Study Flashcards'
       },
       stats: {
-        baseXp: 'Base XP',
-        hours: 'Hours',
-        level: 'Level'
+        baseXp: 'XP',
+        hours: 'H',
+        stars: 'Stars'
       }
     },
     search: {
@@ -421,7 +404,8 @@ explorer: {
       subtitle: 'Discover our full academic catalog',
       resultsFound: 'courses found',
       noResults: 'No courses found',
-      tryChangingFilters: 'Try adjusting filters or search terms'
+      tryChangingFilters: 'Try adjusting filters or search terms',
+      clearFilters: 'Clear Filters'
     },
     exam: {
       modes: {
@@ -431,7 +415,7 @@ explorer: {
       ui: {
         navigator: 'Navigator',
         hide: 'Hide',
-        tipMobile: 'Tip: Swipe ← → to navigate, ↓ for navigator',
+        tipMobile: 'Tip: Swipe ← → to navigate',
         exitBtn: 'Exit',
         legend: {
           current: 'Current',
@@ -453,42 +437,41 @@ explorer: {
           title: '⚠️ Confirm Submission',
           prefix: 'You have',
           suffix: 'unanswered question(s).',
-          confirm: 'Are you sure you want to submit the exam?',
+          confirm: 'Are you sure you want to submit?',
           btn: 'Yes, Submit'
         },
         exit: {
           title: '⚠️ Exit Exam',
-          examWarning: 'If you exit now, your progress will be saved locally, but you cannot resume this exam.',
-          practiceWarning: 'If you exit now, your practice progress will be lost.',
+          examWarning: 'Your progress will be saved, but you cannot resume.',
+          practiceWarning: 'Progress for this session will be lost.',
           confirm: 'Are you sure you want to exit?',
           btn: 'Yes, Exit'
         }
       },
       shortcuts: {
-        title: 'Keyboard Shortcuts',
+        title: 'Shortcuts',
         nav: 'Navigate',
-        select: 'Select Option',
-        mark: 'Mark for Review',
-        next: 'Next (Practice)'
+        select: 'Select',
+        mark: 'Mark',
+        next: 'Next'
       },
       feedback: {
         correct: {
           title: 'Correct!',
-          subtitle: 'Excellent work! Keep it up 💪'
+          subtitle: 'Keep it up! 💪'
         },
         incorrect: {
           title: 'Incorrect',
-          subtitle: 'Don\'t worry, we learn from mistakes! 🧠'
+          subtitle: 'We learn from mistakes! 🧠'
         },
         labels: {
           question: 'QUESTION',
           yourAnswer: 'Your answer:',
-          correctAnswer: 'Correct answer:',
-          yourCorrectAnswer: 'Your correct answer:'
+          correctAnswer: 'Correct answer:'
         },
         actions: {
-          seeExplanation: 'See detailed explanation',
-          hideExplanation: 'Hide explanation',
+          seeExplanation: 'See explanation',
+          hideExplanation: 'Hide',
           continue: 'Continue'
         }
       }
@@ -496,22 +479,18 @@ explorer: {
     study: {
       title: 'Study Mode',
       ui: {
-        navigatorTitle: 'Card Navigator',
+        navigatorTitle: 'Navigator',
         shuffle: 'Shuffle',
         reset: 'Reset',
         mark: 'Mark',
         flip: 'Flip',
-        cardCurrent: 'Current card',
-        cardStudied: 'Studied',
-        cardMarked: 'Marked',
-        cardPending: 'To study',
-        progress: 'cards studied',
-        tip: 'Tip: Use Space/Enter to flip, ← → to navigate'
+        progress: 'studied',
+        tip: 'Space/Enter to flip, ← → navigate'
       },
       modals: {
         exit: {
-          title: '⚠️ Exit study mode',
-          text: 'Your progress will be saved automatically.\nAre you sure you want to exit?',
+          title: '⚠️ Exit',
+          text: 'Are you sure you want to exit?',
           confirm: 'Yes, exit',
           cancel: 'Cancel'
         }
@@ -519,7 +498,7 @@ explorer: {
     },
     results: {
       breadcrumb: 'Results',
-      success: 'Congratulations! You passed',
+      success: 'Passed!',
       fail: 'Keep practicing',
       scoreLabel: 'Final Score',
       stats: {
@@ -528,13 +507,13 @@ explorer: {
         time: 'Time'
       },
       actions: {
-        review: 'See detailed review of all questions',
-        home: 'Back to Home',
-        retry: 'Try again'
+        review: 'Detailed Review',
+        home: 'Go Home',
+        retry: 'Try Again'
       }
     },
     review: {
-      title: 'Detailed Review',
+      title: 'Review',
       score: 'Score',
       filters: {
         all: 'All',
@@ -542,115 +521,62 @@ explorer: {
         incorrect: 'Incorrect',
         unanswered: 'Unanswered'
       },
-      legend: {
-        correct: 'Correct',
-        incorrect: 'Incorrect',
-        unanswered: 'Unanswered'
-      },
       question: {
         title: 'Question',
-        unansweredLabel: 'You did not answer this question',
         explanation: 'Explanation',
         yourAnswer: 'Your answer',
         correctAnswer: 'Correct answer'
-      },
-      nav: {
-        title: 'Navigation',
-        pregs: 'qs.'
       }
     },
     gamification: {
       streak: {
         dailyTitle: 'Daily Streak',
         currentTitle: 'Current Streak',
-        best: 'Best Streak',
+        best: 'Best',
         days: 'days',
-        correct: 'correct',
-        consecutiveDays: 'consecutive days',
-        consecutiveAnswers: 'answers in a row',
-        encouragement: '💪 Don\'t give up! Your record is',
         messages: {
           daily: {
-            start: 'Start your streak today!',
             keepGoing: 'Keep it up!',
             great: 'Great streak!',
-            unstoppable: 'Unstoppable!',
             legendary: 'LEGENDARY!'
-          },
-          correct: {
-            start: 'Answer correctly',
-            good: 'Good streak!',
-            onFire: 'On fire!',
-            incredible: 'Incredible!',
-            perfect: 'PERFECT!'
           }
         }
       },
       level: {
         level: 'Level',
         nextLevel: 'Next Level',
-        progress: 'Progress to next level',
-        remaining: 'Remaining',
-        forNext: 'for next level'
+        progress: 'Progress',
+        remaining: 'Remaining'
       }
     },
     analytics: {
       title: 'Performance Dashboard',
-      subtitle: 'Complete analysis of your performance and progress',
+      subtitle: 'Your learning statistics',
       noData: {
-        title: 'Start your learning journey!',
-        subtitle: 'Complete your first exam to see detailed statistics and analysis',
-        titleFiltered: 'No results for these filters',
-        subtitleFiltered: 'Try changing filters to see more data',
-        chart: 'No data available for this chart'
+        title: 'Start learning!',
+        subtitle: 'Complete exams to see your stats',
+        titleFiltered: 'No data',
+        subtitleFiltered: 'Adjust filters'
       },
       stats: {
         totalExams: 'Total Exams',
-        averageScore: 'Average Score'
+        averageScore: 'Average'
       },
       charts: {
-        performance: {
-          title: 'Performance Over Time',
-          scoreLegend: 'Score (%)'
-        },
-        subject: {
-          title: 'Performance by Subject'
-        },
-        distribution: {
-          title: 'Result Distribution',
-          correct: 'Correct',
-          incorrect: 'Incorrect'
-        }
+        performance: { title: 'Performance', scoreLegend: 'Score (%)' },
+        subject: { title: 'By Subject' },
+        distribution: { title: 'Distribution', correct: 'Correct', incorrect: 'Incorrect' }
       },
       filters: {
-        clear: 'Clear filters',
+        clear: 'Clear',
         allTime: 'All time',
         lastWeek: 'Last 7 days',
-        lastMonth: 'Last month',
-        last3Months: 'Last 3 months',
-        lastYear: 'Last year',
-        subjectPlaceholder: 'Select Subject',
-        allSubjects: 'All Subjects'
+        lastMonth: 'Last 30 days'
       },
       history: {
-        title: 'Exam History',
-        columns: {
-          date: 'Date',
-          subject: 'Subject',
-          score: 'Score',
-          answers: 'Answers',
-          time: 'Time',
-          status: 'Status'
-        },
-        status: {
-          passed: 'Passed',
-          failed: 'Failed'
-        },
-        footer: {
-          totalExams: 'Total exams',
-          passed: 'Passed',
-          average: 'Average'
-        }
+        title: 'History',
+        columns: { date: 'Date', subject: 'Subject', score: 'Score', status: 'Status' },
+        status: { passed: 'Passed', failed: 'Failed' }
       },
       export: {
         button: 'Export PDF',
@@ -659,14 +585,8 @@ explorer: {
     },
     footer: {
       tipPrefix: 'Tip:',
-      tipText: 'Use keyboard shortcuts to navigate faster',
-      shortcuts: {
-        nav: 'Navigate',
-        answer: 'Answer',
-        mark: 'Mark',
-        flip: 'Flip',
-        exit: 'Exit'
-      }
+      tipText: 'Use keyboard shortcuts',
+      shortcuts: { nav: 'Navigate', answer: 'Answer', exit: 'Exit' }
     }
   }
 };

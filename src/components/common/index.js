@@ -26,4 +26,6 @@ export { default as ExamPageSkeleton } from './ExamPageSkeleton';
 export { default as SaveIndicator } from './SaveIndicator';
 export { default as SkeletonLoader } from './SkeletonLoader';
 
+export { default as CourseCard } from './CourseCard';
+
 // NOTA: Todos usan "export { default as X }" que funciona con cualquier tipo de export

@@ -1,3 +1,4 @@
+// src/pages/Results.jsx
 import { useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -6,7 +7,7 @@ import { Card, Button } from '@/components/common';
 import { useSoundContext } from '@/context/SoundContext';
 import { dbManager } from '@/lib/indexedDB';
 import { useLanguage } from '@/context/LanguageContext';
-import { HeaderControls } from '@/components/layout/HeaderControls';
+import { ImmersiveHeader } from '@/components/layout';
 
 export default function Results() {
   const { subjectId } = useParams();
@@ -88,21 +89,17 @@ export default function Results() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-indigo-950 dark:to-purple-950 transition-colors duration-300">
       
-      {/* ✅ HEADER FIX V2: Fondo casi transparente para forzar la fusión */}
-      <header className="sticky top-0 z-40 bg-white/30 dark:bg-black/10 backdrop-blur-md border-b border-white/20 dark:border-white/5 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex-1 min-w-0">
-             <Breadcrumbs 
-               items={breadcrumbItems} 
-               // Aseguramos texto blanco/gris claro en modo oscuro para que contraste con el header transparente
-               className="bg-transparent border-none p-0 shadow-none [&_a]:text-gray-800 dark:[&_a]:text-gray-200 [&_span]:text-gray-800 dark:[&_span]:text-gray-200" 
-             />
-          </div>
-          <div className="flex-shrink-0 ml-4">
-            <HeaderControls languageReadOnly={true} />
-          </div>
-        </div>
-      </header>
+      {/* ✅ 2. Usar el nuevo Header Inmersivo flexible */}
+      <ImmersiveHeader
+        leftSlot={
+          <Breadcrumbs 
+            items={breadcrumbItems} 
+            // Clases para asegurar que el texto sea visible sobre el fondo blur
+            className="bg-transparent border-none p-0 shadow-none [&_a]:text-gray-800 dark:[&_a]:text-gray-200 [&_span]:text-gray-800 dark:[&_span]:text-gray-200" 
+          />
+        }
+        // No pasamos children (rightSlot), así que solo mostrará los HeaderControls
+      />
       
       <div className="max-w-4xl mx-auto px-4 py-8 lg:py-12">
         <motion.div

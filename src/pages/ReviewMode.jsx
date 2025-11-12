@@ -1,36 +1,26 @@
+// src/pages/ReviewMode.jsx
 import { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useSwipe } from '@/hooks/useSwipe';
-import { Breadcrumbs, Button, Loading, SoundControl, DarkModeToggle } from '@/components/common';
-import { useDarkMode } from '@/hooks/useDarkMode';
+import { Button, Loading } from '@/components/common';
 import { useSoundContext } from '@/context/SoundContext';
-import { useLanguage } from '@/context/LanguageContext'; // ✅ Import hook
-import HeaderControls from '@/components/layout/HeaderControls';
+import { useLanguage } from '@/context/LanguageContext';
+import { ImmersiveHeader } from '@/components/layout';
 
 export default function ReviewMode() {
   const { subjectId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const results = location.state?.results;
-  const { t } = useLanguage(); // ✅ Usar hook
+  const { t } = useLanguage();
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [filterMode, setFilterMode] = useState('all');
   const [showNavigator, setShowNavigator] = useState(false);
 
-  // Hooks de UI
-  const { isDark, toggle: toggleDarkMode } = useDarkMode();
-  const { 
-    isMuted,
-    volume,
-    toggleMute,
-    changeVolume,
-    playTest,
-    playClick
-  } = useSoundContext();
+  const { playClick } = useSoundContext();
 
-  // Swipe gestures para mobile
   useSwipe(
     () => nextQuestion(),
     () => previousQuestion(),
@@ -104,7 +94,7 @@ export default function ReviewMode() {
   const previousQuestion = () => {
     if (currentIndex > 0) {
       playClick();
-      setCurrentIndex(prev => prev - 1);
+      setCurrentIndex(prev => prev + 1);
     }
   };
 
@@ -121,17 +111,10 @@ export default function ReviewMode() {
     setCurrentIndex(0);
   };
 
-  const breadcrumbItems = [
-    { label: t('common.home'), href: '/', icon: '🏠' }, // ✅ Traducido
-    { label: results.subjectName, href: '/', icon: '📚' },
-    { label: t('common.results'), href: `/results/${subjectId}`, state: { results }, icon: '📊' }, // ✅ Traducido
-    { label: t('review.title'), icon: '🔍' } // ✅ Traducido
-  ];
-
   if (!currentQuestion) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
-        <Breadcrumbs items={breadcrumbItems} />
+        <ImmersiveHeader />
         <div className="flex items-center justify-center h-[80vh]">
           <div className="text-center">
             <div className="text-6xl mb-4">🔍</div>
@@ -142,7 +125,7 @@ export default function ReviewMode() {
               Cambia el filtro para ver más preguntas
             </p>
             <Button onClick={() => handleFilterChange('all')}>
-              {t('review.filters.all')} {/* ✅ Traducido */}
+              {t('review.filters.all')}
             </Button>
           </div>
         </div>
@@ -152,37 +135,34 @@ export default function ReviewMode() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 pb-20 lg:pb-0">
-      <Breadcrumbs items={breadcrumbItems} />
-
-      {/* Botones flotantes */}
-      <div className="fixed top-14 left-2 lg:left-4 z-50 flex flex-col gap-2">
-        <button
+      
+      {/* ✅ 2. Usar el nuevo Header Inmersivo */}
+      <ImmersiveHeader>
+        {/* Añadimos un botón de "Atrás" que reemplaza los botones flotantes */}
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={() => navigate(`/results/${subjectId}`, { state: { results } })}
-          className="bg-white dark:bg-gray-700 hover:bg-blue-50 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 px-3 py-2 lg:px-5 lg:py-2.5 rounded-lg lg:rounded-xl font-semibold shadow-lg border-2 border-blue-300 dark:border-blue-700 hover:border-blue-400 transform hover:scale-105 transition-all flex items-center gap-1 lg:gap-2 text-sm lg:text-base min-h-[44px]"
+          className="hidden sm:flex"
         >
-          <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          <span className="hidden sm:inline">{t('common.results')}</span> {/* ✅ Traducido */}
-        </button>
-        <button
-          onClick={() => navigate('/')}
-          className="bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 px-3 py-2 lg:px-5 lg:py-2.5 rounded-lg lg:rounded-xl font-semibold shadow-lg border-2 border-gray-300 dark:border-gray-600 hover:border-gray-400 transform hover:scale-105 transition-all flex items-center gap-1 lg:gap-2 text-sm lg:text-base min-h-[44px]"
+          ← {t('common.results')}
+        </Button>
+         <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => navigate(`/`)}
+          className="sm:hidden" // Mostrar solo en móvil
         >
-          <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-          </svg>
-          <span className="hidden sm:inline">{t('common.home')}</span> {/* ✅ Traducido */}
-        </button>
-      </div>
-
-      {/* Header con filtros */}
-{/* Header con filtros y controles */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700 sticky top-[52px] z-20">
+          🏠
+        </Button>
+      </ImmersiveHeader>
+      
+      {/* ✅ 3. Nueva "Cabecera de Contexto" Sticky para Filtros */}
+      <div className="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700 sticky top-16 md:top-20 z-20">
         <div className="max-w-7xl mx-auto px-4 py-3 lg:py-4">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             
-            {/* 1. Título y Subtítulo */}
+            {/* Título y Subtítulo */}
             <div className="flex-shrink-0">
               <h1 className="text-xl lg:text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
                 🔍 {t('review.title')}
@@ -192,59 +172,49 @@ export default function ReviewMode() {
               </p>
             </div>
 
-            {/* 2. Contenedor Derecho (Filtros + Controles) */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 lg:gap-6 min-w-0">
-              
-              {/* 2a. Filtros (Scrollable horizontalmente si falta espacio) */}
-              <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-hide w-full sm:w-auto mask-right">
-                <button
-                  onClick={() => handleFilterChange('all')}
-                  className={`px-3 lg:px-4 py-2 rounded-lg text-xs lg:text-sm font-medium transition-all whitespace-nowrap min-h-[44px] flex-shrink-0 ${
-                    filterMode === 'all'
-                      ? 'bg-indigo-500 text-white shadow-md'
-                      : 'bg-white dark:bg-gray-700 dark:text-gray-200 text-gray-700 border-2 border-gray-300 dark:border-gray-600 hover:border-indigo-400 dark:hover:border-indigo-500'
-                  }`}
-                >
-                  {t('review.filters.all')} ({questions.length})
-                </button>
-                <button
-                  onClick={() => handleFilterChange('correct')}
-                  className={`px-3 lg:px-4 py-2 rounded-lg text-xs lg:text-sm font-medium transition-all whitespace-nowrap min-h-[44px] flex-shrink-0 ${
-                    filterMode === 'correct'
-                      ? 'bg-green-500 text-white shadow-md'
-                      : 'bg-white dark:bg-gray-700 dark:text-gray-200 text-gray-700 border-2 border-gray-300 dark:border-gray-600 hover:border-green-400 dark:hover:border-green-500'
-                  }`}
-                >
-                  ✅ <span className="hidden xl:inline">{t('review.filters.correct')}</span> ({results.correctAnswers})
-                </button>
-                <button
-                  onClick={() => handleFilterChange('incorrect')}
-                  className={`px-3 lg:px-4 py-2 rounded-lg text-xs lg:text-sm font-medium transition-all whitespace-nowrap min-h-[44px] flex-shrink-0 ${
-                    filterMode === 'incorrect'
-                      ? 'bg-red-500 text-white shadow-md'
-                      : 'bg-white dark:bg-gray-700 dark:text-gray-200 text-gray-700 border-2 border-gray-300 dark:border-gray-600 hover:border-red-400 dark:hover:border-red-500'
-                  }`}
-                >
-                  ❌ <span className="hidden xl:inline">{t('review.filters.incorrect')}</span> ({results.totalQuestions - results.correctAnswers - (results.totalQuestions - Object.keys(answers).length)})
-                </button>
-                <button
-                  onClick={() => handleFilterChange('unanswered')}
-                  className={`px-3 lg:px-4 py-2 rounded-lg text-xs lg:text-sm font-medium transition-all whitespace-nowrap min-h-[44px] flex-shrink-0 ${
-                    filterMode === 'unanswered'
-                      ? 'bg-gray-500 text-white shadow-md'
-                      : 'bg-white dark:bg-gray-700 dark:text-gray-200 text-gray-700 border-2 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
-                  }`}
-                >
-                  ⚪ <span className="hidden xl:inline">{t('review.filters.unanswered')}</span> ({results.totalQuestions - Object.keys(answers).length})
-                </button>
-              </div>
-
-              {/* 2b. Controles de Header (FUERA del scroll) */}
-              <div className="flex-shrink-0 sm:border-l sm:border-gray-200 dark:sm:border-gray-700 sm:pl-4 ml-auto sm:ml-0">
-                <HeaderControls languageReadOnly={true} />
-              </div>
+            {/* Filtros (Scrollable) */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-hide w-full sm:w-auto mask-right">
+              <button
+                onClick={() => handleFilterChange('all')}
+                className={`px-3 lg:px-4 py-2 rounded-lg text-xs lg:text-sm font-medium transition-all whitespace-nowrap min-h-[44px] flex-shrink-0 ${
+                  filterMode === 'all'
+                    ? 'bg-indigo-500 text-white shadow-md'
+                    : 'bg-white dark:bg-gray-700 dark:text-gray-200 text-gray-700 border-2 border-gray-300 dark:border-gray-600 hover:border-indigo-400 dark:hover:border-indigo-500'
+                }`}
+              >
+                {t('review.filters.all')} ({questions.length})
+              </button>
+              <button
+                onClick={() => handleFilterChange('correct')}
+                className={`px-3 lg:px-4 py-2 rounded-lg text-xs lg:text-sm font-medium transition-all whitespace-nowrap min-h-[44px] flex-shrink-0 ${
+                  filterMode === 'correct'
+                    ? 'bg-green-500 text-white shadow-md'
+                    : 'bg-white dark:bg-gray-700 dark:text-gray-200 text-gray-700 border-2 border-gray-300 dark:border-gray-600 hover:border-green-400 dark:hover:border-green-500'
+                }`}
+              >
+                ✅ <span className="hidden xl:inline">{t('review.filters.correct')}</span> ({results.correctAnswers})
+              </button>
+              <button
+                onClick={() => handleFilterChange('incorrect')}
+                className={`px-3 lg:px-4 py-2 rounded-lg text-xs lg:text-sm font-medium transition-all whitespace-nowrap min-h-[44px] flex-shrink-0 ${
+                  filterMode === 'incorrect'
+                    ? 'bg-red-500 text-white shadow-md'
+                    : 'bg-white dark:bg-gray-700 dark:text-gray-200 text-gray-700 border-2 border-gray-300 dark:border-gray-600 hover:border-red-400 dark:hover:border-red-500'
+                }`}
+              >
+                ❌ <span className="hidden xl:inline">{t('review.filters.incorrect')}</span> ({results.totalQuestions - results.correctAnswers - (results.totalQuestions - Object.keys(answers).length)})
+              </button>
+              <button
+                onClick={() => handleFilterChange('unanswered')}
+                className={`px-3 lg:px-4 py-2 rounded-lg text-xs lg:text-sm font-medium transition-all whitespace-nowrap min-h-[44px] flex-shrink-0 ${
+                  filterMode === 'unanswered'
+                    ? 'bg-gray-500 text-white shadow-md'
+                    : 'bg-white dark:bg-gray-700 dark:text-gray-200 text-gray-700 border-2 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                }`}
+              >
+                ⚪ <span className="hidden xl:inline">{t('review.filters.unanswered')}</span> ({results.totalQuestions - Object.keys(answers).length})
+              </button>
             </div>
-
           </div>
         </div>
       </div>
@@ -256,7 +226,7 @@ export default function ReviewMode() {
           className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-3 px-4 rounded-xl font-semibold shadow-lg flex items-center justify-center gap-2 min-h-[44px]"
         >
           <span className="text-xl">🗂️</span>
-          <span>{showNavigator ? t('exam.ui.hide') : t('exam.ui.navigator')}</span> {/* ✅ Traducido */}
+          <span>{showNavigator ? t('exam.ui.hide') : t('exam.ui.navigator')}</span>
           <svg className={`w-5 h-5 transition-transform ${showNavigator ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
@@ -267,10 +237,11 @@ export default function ReviewMode() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Navigator colapsable */}
           <div className={`lg:col-span-1 order-2 lg:order-1 ${showNavigator ? 'block' : 'hidden lg:block'}`}>
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-4 lg:p-6 border-2 border-gray-100 dark:border-gray-700 sticky top-32">
+            {/* ✅ 4. Ajustar el top- sticky */}
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-4 lg:p-6 border-2 border-gray-100 dark:border-gray-700 sticky top-40"> {/* Ajustado de 32 a 40 */}
               <h3 className="font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2 text-base lg:text-lg">
                 <span className="text-xl lg:text-2xl">🗂️</span>
-                {t('review.nav.title')} ({filteredQuestions.length} {t('review.nav.pregs')}) {/* ✅ Traducido */}
+                {t('review.nav.title')} ({filteredQuestions.length} {t('review.nav.pregs')})
               </h3>
 
               <div className="grid grid-cols-5 gap-2 mb-4 max-h-64 lg:max-h-96 overflow-y-auto">
@@ -306,22 +277,21 @@ export default function ReviewMode() {
               <div className="text-xs text-gray-600 dark:text-gray-300 space-y-2 pt-4 border-t dark:border-gray-700">
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 rounded bg-gradient-to-br from-green-100 to-emerald-100 border-2 border-green-400"></div>
-                  <span className="dark:text-gray-400">{t('review.legend.correct')}</span> {/* ✅ Traducido */}
+                  <span className="dark:text-gray-400">{t('review.legend.correct')}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 rounded bg-gradient-to-br from-red-100 to-pink-100 border-2 border-red-400"></div>
-                  <span className="dark:text-gray-400">{t('review.legend.incorrect')}</span> {/* ✅ Traducido */}
+                  <span className="dark:text-gray-400">{t('review.legend.incorrect')}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 rounded bg-gray-100 border-2 border-gray-300"></div>
-                  <span className="dark:text-gray-400">{t('review.legend.unanswered')}</span> {/* ✅ Traducido */}
+                  <span className="dark:text-gray-400">{t('review.legend.unanswered')}</span>
                 </div>
               </div>
 
-              {/* Hints de gestos */}
               <div className="mt-4 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/40 dark:to-pink-900/40 border-2 border-purple-200 dark:border-purple-800 rounded-xl p-3 lg:hidden">
                 <p className="text-xs font-bold text-purple-900 dark:text-purple-300 mb-2 flex items-center gap-2">
-                  <span className="text-base">👆</span> {t('exam.ui.tipMobile')} {/* ✅ Reusado Tip */}
+                  <span className="text-base">👆</span> {t('exam.ui.tipMobile')}
                 </p>
               </div>
             </div>
@@ -339,9 +309,8 @@ export default function ReviewMode() {
               {/* Header */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 pb-3 border-b-2 border-gray-100 dark:border-gray-700 gap-2">
                 <span className="text-xs font-bold text-gray-600 dark:text-gray-300 bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 px-3 py-1.5 rounded-full whitespace-nowrap">
-                  🔍 {t('review.question.title')} {questions.indexOf(currentQuestion) + 1} de {questions.length} {/* ✅ Traducido */}
+                  🔍 {t('review.question.title')} {questions.indexOf(currentQuestion) + 1} de {questions.length}
                 </span>
-                {/* Badges de categoría/dificultad se mantienen igual (idealmente deberían traducirse también si son ENUMs) */}
                 <div className="flex gap-2 flex-wrap">
                   {currentQuestion.category && (
                     <span className="px-3 py-1.5 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-full text-xs font-semibold shadow-md">
@@ -354,10 +323,9 @@ export default function ReviewMode() {
                       currentQuestion.difficulty === 'intermedio' ? 'bg-gradient-to-r from-yellow-400 to-orange-400 text-white' :
                       'bg-gradient-to-r from-red-400 to-pink-400 text-white'
                     }`}>
-{/* ✅ USAR t() PARA TRADUCIR LA DIFICULTAD */}
-    {currentQuestion.difficulty === 'basico' ? `⭐ ${t('common.difficulty.basico')}` :
-     currentQuestion.difficulty === 'intermedio' ? `⭐⭐ ${t('common.difficulty.intermedio')}` :
-     `⭐⭐⭐ ${t('common.difficulty.avanzado')}`}
+                        {currentQuestion.difficulty === 'basico' ? `⭐ ${t('common.difficulty.basico')}` :
+                         currentQuestion.difficulty === 'intermedio' ? `⭐⭐ ${t('common.difficulty.intermedio')}` :
+                         `⭐⭐⭐ ${t('common.difficulty.avanzado')}`}
                     </span>
                   )}
                 </div>
@@ -431,14 +399,14 @@ export default function ReviewMode() {
                         ? `⚪ ${t('review.question.unansweredLabel')}` 
                         : isCorrect 
                           ? '🎉 ' + t('results.success') + '!' 
-                          : '❌ ' + t('results.fail')} {/* ✅ Traducido */}
+                          : '❌ ' + t('results.fail')}
                     </p>
                     {isAnswered && (
                       <p className="text-xs lg:text-sm text-gray-600 dark:text-gray-400 mt-1">
                         {t('review.question.yourAnswer')}: <strong>{currentQuestion.options[userAnswer]}</strong>
                         {!isCorrect && (
                           <> • {t('review.question.correctAnswer')}: <strong className="text-green-600 dark:text-green-400">{currentQuestion.options[currentQuestion.correct]}</strong></>
-                        )} {/* ✅ Traducido */}
+                        )}
                       </p>
                     )}
                   </div>
@@ -454,7 +422,7 @@ export default function ReviewMode() {
                     </div>
                     <div className="flex-1">
                       <p className="font-bold text-sm lg:text-base text-blue-900 dark:text-blue-300 mb-2">
-                        📚 {t('review.question.explanation')} {/* ✅ Traducido */}
+                        📚 {t('review.question.explanation')}
                       </p>
                       <p className="text-gray-700 dark:text-gray-300 text-xs lg:text-sm leading-relaxed">
                         {currentQuestion.explanation}
@@ -480,7 +448,7 @@ export default function ReviewMode() {
               <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              <span className="hidden sm:inline">{t('common.back')}</span> {/* ✅ Traducido */}
+              <span className="hidden sm:inline">{t('common.back')}</span>
             </button>
 
             <div className="text-center flex-1">
@@ -488,7 +456,7 @@ export default function ReviewMode() {
                 {currentIndex + 1} de {filteredQuestions.length}
               </div>
               <div className="text-xs text-gray-500 dark:text-gray-400 hidden lg:block">
-                <kbd className="font-mono">←→</kbd> {t('footer.shortcuts.nav')} {/* ✅ Traducido */}
+                <kbd className="font-mono">←→</kbd> {t('footer.shortcuts.nav')}
               </div>
             </div>
 
@@ -497,7 +465,7 @@ export default function ReviewMode() {
                 onClick={nextQuestion}
                 className="flex items-center gap-1 lg:gap-2 px-3 lg:px-6 py-2 lg:py-3 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all text-sm lg:text-base min-h-[44px]"
               >
-                <span className="hidden sm:inline">{t('common.next')}</span> {/* ✅ Traducido */}
+                <span className="hidden sm:inline">{t('common.next')}</span>
                 <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
@@ -509,14 +477,14 @@ export default function ReviewMode() {
                   onClick={() => navigate(`/results/${subjectId}`, { state: { results } })}
                   className="text-xs lg:text-sm px-3 lg:px-4 py-2 min-h-[44px] hidden sm:flex"
                 >
-                  📊 {t('common.results')} {/* ✅ Traducido */}
+                  📊 {t('common.results')}
                 </Button>
                 <Button
                   variant="primary"
                   onClick={() => navigate('/')}
                   className="text-xs lg:text-sm px-3 lg:px-4 py-2 min-h-[44px]"
                 >
-                  🏠 {t('common.home')} {/* ✅ Traducido */}
+                  🏠 {t('common.home')}
                 </Button>
               </div>
             )}

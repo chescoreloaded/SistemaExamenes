@@ -1,16 +1,16 @@
+// src/pages/StudyMode.jsx
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useFlashcards } from '@/hooks/useFlashcards';
 import { useSwipe } from '@/hooks/useSwipe';
 import { Flashcard, StudyProgress } from '@/components/study';
 import FlashcardNavigator from '@/components/study/FlashcardNavigator';
-import { Button, Loading, Modal, Breadcrumbs, SoundControl, DarkModeToggle } from '@/components/common';
+import { Button, Loading, Modal } from '@/components/common';
 import { SaveIndicator } from '@/components/common/SaveIndicator';
-import { useDarkMode } from '@/hooks/useDarkMode';
 import { useSoundContext } from '@/context/SoundContext';
 import { dbManager } from '@/lib/indexedDB';
 import { useLanguage } from '@/context/LanguageContext';
-import HeaderControls from '@/components/layout/HeaderControls';
+import { ImmersiveHeader } from '@/components/layout';
 
 export default function StudyMode() {
   const { subjectId } = useParams();
@@ -19,16 +19,9 @@ export default function StudyMode() {
   const [showNavigator, setShowNavigator] = useState(false);
   const { t, language } = useLanguage();
 
-  // Dark mode y sonidos
-  const { isDark, toggle: toggleDarkMode } = useDarkMode();
   const { 
     playClick,
     playFlashcardFlip,
-    isMuted,
-    volume,
-    toggleMute,
-    changeVolume,
-    playTest
   } = useSoundContext();
 
   const {
@@ -54,7 +47,6 @@ export default function StudyMode() {
     toggleMark
   } = useFlashcards(subjectId, language);
 
-  // Swipe gestures
   useSwipe(
     () => {
       playClick();
@@ -177,76 +169,55 @@ export default function StudyMode() {
     );
   }
 
-  // ✅ CORREGIDO: Sin comentarios JSX dentro del array JS
-  const breadcrumbItems = [
-    { label: t('common.home'), href: '/', icon: '🏠' },
-    { label: subjectName, href: '/', icon: subjectIcon },
-    { label: t('study.title'), icon: '📚' }
-  ];
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-900 dark:to-pink-900 transition-colors duration-300">
-      <Breadcrumbs items={breadcrumbItems} />
       
-      <div className="sticky top-0 z-40 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b-2 border-indigo-200 dark:border-indigo-700 shadow-md transition-colors duration-300">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div className="flex items-center gap-4 flex-1 min-w-0">
-              <div className="flex items-center gap-3">
-                <span className="text-3xl">{subjectIcon}</span>
-                <div className="min-w-0">
-                  <h1 className="text-lg font-bold text-gray-800 dark:text-white truncate">
-                    {subjectName}
-                  </h1>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">
-                    📚 {t('study.title')} • Flashcards
-                  </p>
-                </div>
-              </div>
+      {/* ✅ 2. Usar el nuevo Header Inmersivo */}
+      <ImmersiveHeader>
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => setShowExitModal(true)}
+          className="hidden sm:flex"
+        >
+          ← {t('common.exit')}
+        </Button>
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => setShowNavigator(!showNavigator)}
+          className="lg:hidden"
+        >
+          🗂️ {showNavigator ? t('exam.ui.hide') : t('study.ui.navigatorTitle')}
+        </Button>
+      </ImmersiveHeader>
 
-              <div className="hidden md:flex items-center gap-4">
-                <div className="text-sm">
-                  <span className="font-bold text-indigo-600 dark:text-indigo-400">{currentIndex + 1}</span>
-                  <span className="text-gray-500 dark:text-gray-400"> / {totalCards}</span>
-                </div>
-                <div className="text-xs text-gray-600 dark:text-gray-400 bg-indigo-100 dark:bg-indigo-900/30 px-2 py-1 rounded-full">
-                  {studiedCards.size} {t('study.ui.progress')}
-                </div>
+      {/* ✅ 3. Nueva "Cabecera de Contexto" Sticky */}
+      <div className="sticky top-16 md:top-20 z-30 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b-2 border-indigo-200 dark:border-indigo-700 shadow-md transition-colors duration-300">
+        <div className="max-w-7xl mx-auto px-4 py-4 space-y-3">
+          
+          {/* Info y SaveIndicator (Movido aquí) */}
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-3 min-w-0">
+              <span className="text-3xl">{subjectIcon}</span>
+              <div className="min-w-0">
+                <h1 className="text-lg font-bold text-gray-800 dark:text-white truncate">
+                  {subjectName}
+                </h1>
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  📚 {t('study.title')} • Flashcards
+                </p>
               </div>
             </div>
-
             <div className="hidden lg:block">
               <SaveIndicator status={saveStatus} />
             </div>
-            
-            <div className="flex items-center gap-2">
-              <HeaderControls />
-              <div className="h-5 w-px bg-gray-300 dark:bg-gray-700 hidden sm:block ml-1"></div>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setShowExitModal(true)}
-                className="hidden sm:flex"
-              >
-                ← {t('common.exit')}
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setShowNavigator(!showNavigator)}
-                className="lg:hidden"
-              >
-                🗂️ {showNavigator ? t('exam.ui.hide') : t('study.ui.navigatorTitle')}
-              </Button>
-            </div>
           </div>
 
-          <div className="mt-3 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 dark:from-indigo-600 dark:via-purple-600 dark:to-pink-600 rounded-lg p-3">
+          {/* Barra de Progreso (Movida aquí) */}
+          <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 dark:from-indigo-600 dark:via-purple-600 dark:to-pink-600 rounded-lg p-3">
             <div className="flex items-center justify-between text-white">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold">📚 {t('study.title')}</span>
-              </div>
-              <div className="text-right">
+              <div className="text-right flex-1">
                 <div className="text-lg font-bold">
                   {t('study.ui.cardCurrent')} {currentIndex + 1} / {totalCards}
                 </div>
@@ -263,7 +234,7 @@ export default function StudyMode() {
             </div>
           </div>
 
-          <div className="lg:hidden mt-2 flex justify-center">
+          <div className="lg:hidden flex justify-center">
             <SaveIndicator status={saveStatus} />
           </div>
         </div>
@@ -349,7 +320,8 @@ export default function StudyMode() {
           </main>
 
           <aside className={`${showNavigator ? 'block' : 'hidden'} lg:block`}>
-            <div className="sticky top-24">
+             {/* ✅ 4. Ajustar el top- sticky */}
+            <div className="sticky top-28"> {/* Ajustado de top-24 a top-28 */}
               <FlashcardNavigator
                 cards={cards}
                 currentIndex={currentIndex}

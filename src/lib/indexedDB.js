@@ -235,6 +235,26 @@ class IndexedDBManager {
   }
 
   /**
+   * Obtener historial completo de exámenes
+   */
+  async getExamHistory() {
+    await this.ensureDB();
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction([STORE_EXAM_SESSIONS], 'readonly');
+      const store = transaction.objectStore(STORE_EXAM_SESSIONS);
+      const request = store.getAll();
+
+      request.onsuccess = () => {
+        const sessions = request.result || [];
+        // Ordenar por fecha descendente
+        sessions.sort((a, b) => (b.date || b.timestamp || 0) - (a.date || a.timestamp || 0));
+        resolve(sessions);
+      };
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  /**
    * Limpiar sesiones antiguas (más de 7 días)
    */
   async cleanOldSessions() {
@@ -595,6 +615,9 @@ class IndexedDBManager {
 
 // Singleton instance
 export const dbManager = new IndexedDBManager();
+
+// Exportar funciones individuales para conveniencia
+export const getExamHistory = () => dbManager.getExamHistory();
 
 // Auto-inicializar
 dbManager.init().catch(err => {

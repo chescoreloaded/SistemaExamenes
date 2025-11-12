@@ -1,50 +1,93 @@
+// src/components/layout/MainLayout.jsx
+import { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Navbar } from './Navbar';
 import { HeaderControls } from './HeaderControls';
-import { useLanguage } from '@/context/LanguageContext';
+import { Logo } from '../common/Logo'; // Asegúrate de importar el nuevo Logo
 import { PageTransition } from '../common/PageTransition';
 
 export default function MainLayout() {
-  const { t } = useLanguage();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+
+  // Cerrar menú móvil al cambiar de ruta
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-      {/* ✅ HEADER GLOBAL COMÚN */}
-      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-30 transition-colors duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* ✅ HEADER GLOBAL */}
+      <header className="sticky top-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200/50 dark:border-gray-800/50 supports-[backdrop-filter]:bg-white/60">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16 md:h-20">
             
-            {/* Logo / Título */}
-            <div className="flex-shrink-0 flex items-center">
-              <span className="text-2xl mr-2">🚀</span>
-              <div>
-                <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent leading-tight">
-                  {t('app.title')}
-                </h1>
-                <p className="text-xs text-gray-500 dark:text-gray-400 hidden sm:block">
-                  {t('app.subtitle')}
-                </p>
-              </div>
+            {/* Logo (Izquierda) */}
+            <div className="flex-shrink-0">
+              <Logo />
             </div>
 
-            {/* Navegación Central */}
-            <div className="flex-1 flex justify-center md:px-4">
+            {/* Navbar Desktop (Centro) */}
+            <div className="hidden md:flex absolute left-1/2 transform -translate-x-1/2">
               <Navbar />
             </div>
             
-            {/* Controles Globales */}
-            <div className="flex-shrink-0 flex justify-end">
-              <HeaderControls languageReadOnly={false} />
+            {/* Controles Desktop (Derecha) */}
+            <div className="hidden md:flex items-center gap-4">
+              <HeaderControls />
+            </div>
+
+            {/* MOBILE: Controles + Hamburguesa (Derecha) */}
+            <div className="flex md:hidden items-center gap-2">
+              <HeaderControls className="scale-90" /> {/* Un poco más pequeños en móvil */}
+              
+              {/* Botón Hamburguesa */}
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ml-2"
+                aria-label="Toggle menu"
+              >
+                <div className="w-6 h-6 flex flex-col justify-center gap-1.5">
+                  <motion.span
+                    animate={isMobileMenuOpen ? { rotate: 45, y: 8 } : { rotate: 0, y: 0 }}
+                    className="w-full h-0.5 bg-current rounded-full origin-center transition-transform"
+                  />
+                  <motion.span
+                    animate={isMobileMenuOpen ? { opacity: 0 } : { opacity: 1 }}
+                    className="w-full h-0.5 bg-current rounded-full transition-opacity"
+                  />
+                  <motion.span
+                    animate={isMobileMenuOpen ? { rotate: -45, y: -8 } : { rotate: 0, y: 0 }}
+                    className="w-full h-0.5 bg-current rounded-full origin-center transition-transform"
+                  />
+                </div>
+              </button>
             </div>
 
           </div>
         </div>
+
+        {/* ✅ MOBILE MENU (Desplegable) */}
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="md:hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden"
+            >
+              <div className="px-4 pt-2 pb-6 space-y-1">
+                <Navbar mobile onItemClick={() => setIsMobileMenuOpen(false)} />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
-      {/* ✅ CONTENIDO DE LA PÁGINA (Con transición) */}
-      <main>
-        {/* Usamos key={location.pathname} para forzar la animación al cambiar de ruta hija */}
+      {/* ✅ CONTENIDO PRINCIPAL */}
+      <main className="relative z-0">
         <PageTransition type="fade" key={location.pathname}>
           <Outlet />
         </PageTransition>
