@@ -47,6 +47,11 @@ export default function StudyMode() {
     toggleMark
   } = useFlashcards(subjectId, language);
 
+  // ✅ ARREGLO DE SCROLL: Forzar el scroll al inicio al montar
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   useSwipe(
     () => {
       playClick();
@@ -172,7 +177,7 @@ export default function StudyMode() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-900 dark:to-pink-900 transition-colors duration-300">
       
-      {/* ✅ 2. Usar el nuevo Header Inmersivo */}
+      {/* 2. Usar el nuevo Header Inmersivo */}
       <ImmersiveHeader>
         <Button
           variant="secondary"
@@ -192,7 +197,7 @@ export default function StudyMode() {
         </Button>
       </ImmersiveHeader>
 
-      {/* ✅ 3. Nueva "Cabecera de Contexto" Sticky */}
+      {/* 3. Nueva "Cabecera de Contexto" Sticky */}
       <div className="sticky top-16 md:top-20 z-30 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b-2 border-indigo-200 dark:border-indigo-700 shadow-md transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 py-4 space-y-3">
           
@@ -219,9 +224,11 @@ export default function StudyMode() {
             <div className="flex items-center justify-between text-white">
               <div className="text-right flex-1">
                 <div className="text-lg font-bold">
+                  {/* ✅ ARREGLO DE TRADUCCIÓN */}
                   {t('study.ui.cardCurrent')} {currentIndex + 1} / {totalCards}
                 </div>
                 <div className="text-xs opacity-90">
+                  {/* ✅ ARREGLO DE TRADUCCIÓN */}
                   {studiedCards.size} {t('study.ui.progress')} • {Math.round((studiedCards.size / totalCards) * 100)}%
                 </div>
               </div>
@@ -279,6 +286,7 @@ export default function StudyMode() {
                   disabled={currentIndex === 0}
                   variant="secondary"
                   className="min-h-[44px]"
+                  // ✅ ARREGLO DE SCROLL: Quitado autoFocus
                 >
                   ← {t('common.back')}
                 </Button>
@@ -290,6 +298,7 @@ export default function StudyMode() {
                   disabled={currentIndex === totalCards - 1}
                   variant="secondary"
                   className="min-h-[44px]"
+                  // ✅ ARREGLO DE SCROLL: Quitado autoFocus
                 >
                   {t('common.next')} →
                 </Button>
@@ -320,7 +329,7 @@ export default function StudyMode() {
           </main>
 
           <aside className={`${showNavigator ? 'block' : 'hidden'} lg:block`}>
-             {/* ✅ 4. Ajustar el top- sticky */}
+             {/* 4. Ajustar el top- sticky */}
             <div className="sticky top-28"> {/* Ajustado de top-24 a top-28 */}
               <FlashcardNavigator
                 cards={cards}

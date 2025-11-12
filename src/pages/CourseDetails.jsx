@@ -1,3 +1,4 @@
+// src/pages/CourseDetails.jsx
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -22,6 +23,11 @@ export default function CourseDetails() {
     lastAttempt: null,
     totalXpEarned: 0
   });
+
+  // ✅ ARREGLO DE SCROLL: Forzar el scroll al inicio al montar
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   useEffect(() => {
     loadSubjectDetails();
@@ -130,7 +136,7 @@ export default function CourseDetails() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* ✅ HERO SECTION OPTIMIZADO PARA MÓVIL */}
+      {/* HERO SECTION */}
       <div 
         className="relative overflow-hidden pb-12"
         style={{
@@ -169,7 +175,7 @@ export default function CourseDetails() {
               <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-3">
                  {subject.difficulty_level && (
                   <span className="px-3 py-1 rounded-full text-xs font-bold uppercase bg-white/50 dark:bg-gray-800/50 backdrop-blur text-gray-700 dark:text-gray-300">
-                     {t(`common.difficulty.${subject.difficulty_level}`) || subject.difficulty_level}
+                     {t(`common.difficulty.${subject.difficulty_level?.toLowerCase()}`) || subject.difficulty_level}
                   </span>
                  )}
                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-white/50 dark:bg-gray-800/50 backdrop-blur text-gray-700 dark:text-gray-300">
@@ -203,7 +209,7 @@ export default function CourseDetails() {
         </div>
       </div>
 
-      {/* ✅ ACTION CARDS SECTION */}
+      {/* ACTION CARDS SECTION */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-8 md:-mt-12 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {modeCards.map((mode, index) => (
@@ -234,6 +240,7 @@ export default function CourseDetails() {
                     bg-gradient-to-r ${mode.gradient} ${mode.shadow}
                     hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 
                     flex items-center justify-center gap-2`}
+                  // ✅ ARREGLO DE SCROLL: Quitado autoFocus
                 >
                   {mode.buttonText} →
                 </button>
@@ -242,7 +249,7 @@ export default function CourseDetails() {
           ))}
         </div>
 
-        {/* ✅ CATEGORIES & INFO SECTION */}
+        {/* CATEGORIES & INFO SECTION */}
         <div className="mt-16 grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Columna Izq: Categorías */}
           {subject.categories?.length > 0 && (

@@ -4,7 +4,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Navbar } from './Navbar';
 import { HeaderControls } from './HeaderControls';
-import { Logo } from '../common/Logo'; // Asegúrate de importar el nuevo Logo
+import { Logo } from '../common/Logo';
 import { PageTransition } from '../common/PageTransition';
 
 export default function MainLayout() {
@@ -17,7 +17,10 @@ export default function MainLayout() {
   }, [location.pathname]);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+    // ✅ ARREGLO DE VIEWPORT (overflow-x-hidden):
+    // Previene que cualquier componente hijo cause un scroll horizontal
+    // y arregla el problema de "zoom-out" en móviles.
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300 overflow-x-hidden">
       {/* ✅ HEADER GLOBAL */}
       <header className="sticky top-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200/50 dark:border-gray-800/50 supports-[backdrop-filter]:bg-white/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
