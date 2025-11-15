@@ -81,7 +81,8 @@ export default function ExamMode() {
         question: question.question, userAnswer: question.options[answerIndex],
         correctAnswer: question.options[question.correct], isCorrect,
         explanation: question.explanation, relatedFlashcard: question.relatedFlashcard,
-        xpGained: xpData.totalXP, streakMultiplier: getStreakMultiplier()
+        xpGained: xpData.amount, // Usamos xpData.amount aquí también por si acaso
+        streakMultiplier: getStreakMultiplier()
       });
       window.scrollTo(0, 0);
       setTimeout(() => { setShowFeedbackModal(true); if (isCorrect) showConfetti(); }, 600);
@@ -218,7 +219,6 @@ export default function ExamMode() {
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-lg p-4 sm:p-6">
-            {/* El contenido del modal ya es oscuro/claro y la "X" está arreglada */}
             <TabbedNavigation />
           </DialogContent>
         </Dialog>
@@ -291,14 +291,12 @@ export default function ExamMode() {
           </div>
         </div>
 
-        {/* ✅ --- INICIO DE CAMBIOS --- */}
         {/* Panel Colapsable de Desktop (Sheet) con "Pestaña de Folder" */}
         <Sheet>
           <SheetTrigger asChild>
-            {/* Esta es la nueva "Pestaña de Folder" que reemplaza al botón flotante */}
             <div
               className="hidden lg:flex items-center justify-center
-                         fixed top-1/2 -translate-y-1/PERCENTR right-0 z-40
+                         fixed top-1/2 -translate-y-1/2 right-0 z-40
                          h-36 w-10 px-1 py-4
                          bg-card border-l border-t border-b border-border 
                          rounded-l-lg shadow-lg cursor-pointer
@@ -312,13 +310,11 @@ export default function ExamMode() {
             </div>
           </SheetTrigger>
           <SheetContent className="w-[380px] p-0 overflow-y-auto" side="right">
-            {/* La "X" aquí ahora está arreglada gracias al PASO 1 */}
             <div className="p-6">
               <TabbedNavigation />
             </div>
           </SheetContent>
         </Sheet>
-        {/* ✅ --- FIN DE CAMBIOS --- */}
         
         {/* Main Content */}
         <div className="max-w-4xl mx-auto px-4 py-6">
@@ -408,13 +404,19 @@ export default function ExamMode() {
         </div>
       )}
       {recentlyUnlocked && <AchievementToast achievement={recentlyUnlocked} onClose={clearRecentlyUnlocked} />}
+      
+      {/* ✅ --- INICIO DE CORRECCIÓN --- */}
       {recentXPGain && (
         <div className="fixed bottom-20 right-4 z-50 animate-bounce">
            <div className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-sm font-bold px-4 py-2 rounded-full shadow-lg">
-            + {recentXPGain} XP ✨
+            {/* Cambiamos 'recentXPGain' (que es un objeto) 
+              a 'recentXPGain.amount' (que es el número)
+            */}
+            + {recentXPGain.amount} XP ✨
           </div>
         </div>
       )}
+      {/* ✅ --- FIN DE CORRECCIÓN --- */}
     </div>
   );
 }
