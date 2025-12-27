@@ -27,11 +27,10 @@ export const TRANSLATIONS = {
       minutes: 'min',
       passingScore: 'para aprobar',
       progress: 'Progreso',
-      // ✅ --- INICIO DE CAMBIOS ---
       navigator: 'Navegador',
       stats: 'Estadísticas',
       navigationAndStats: 'Navegación y Estadísticas',
-      // ✅ --- FIN DE CAMBIOS ---
+      close: 'Cerrar', // Recomendado agregar si se usa en tooltips
       difficulty: {
         basic: 'Básico',
         intermediate: 'Intermedio',
@@ -146,13 +145,12 @@ export const TRANSLATIONS = {
       modals: {
         finish: {
           title: '⚠️ Confirmar Envío',
-          // ✅ CAMBIO: Claves anidadas para interpolación
           body: 'Tienes {count} pregunta(s) sin responder. ¿Seguro que quieres terminar?',
           btn: 'Sí, Terminar'
         },
         exit: {
           title: '⚠️ Salir del Examen',
-          body: 'Tu progreso se guardará, pero no podrás reanudar este examen. ¿Seguro que quieres salir?', // Asumiendo modo examen por defecto
+          body: 'Tu progreso se guardará, pero no podrás reanudar este examen. ¿Seguro que quieres salir?',
           examWarning: 'Tu progreso se guardará, pero no podrás reanudar este examen. ¿Seguro que quieres salir?',
           practiceWarning: 'Perderás el progreso de esta sesión. ¿Seguro que quieres salir?',
           btn: 'Sí, Salir'
@@ -190,18 +188,17 @@ export const TRANSLATIONS = {
       title: 'Modo Estudio',
       ui: {
         navigatorTitle: 'Navegación',
+        panelTitle: 'Panel de Estudio', // ✅ NUEVO
         shuffle: 'Mezclar',
         reset: 'Reiniciar',
         mark: 'Marcar',
         flip: 'Girar',
         progress: 'estudiadas',
         tip: 'Espacio/Enter para girar, ← → navegar',
-        // ✅ --- INICIO DE CAMBIOS ---
         cardCurrent: 'Tarjeta',
         cardStudied: 'Estudiada',
         cardMarked: 'Marcada',
         cardPending: 'Pendiente'
-        // ✅ --- FIN DE CAMBIOS ---
       },
       modals: {
         exit: {
@@ -250,7 +247,6 @@ export const TRANSLATIONS = {
         currentTitle: 'Racha Actual',
         best: 'Mejor',
         days: 'días',
-        // ✅ --- INICIO DE CAMBIOS ---
         correct: 'Racha de Correctas',
         consecutiveAnswers: 'respuestas consecutivas',
         messages: {
@@ -260,7 +256,6 @@ export const TRANSLATIONS = {
             great: '¡Gran racha!',
             legendary: '¡Imparable!'
           },
-          // ✅ --- FIN DE CAMBIOS ---
           daily: {
             keepGoing: '¡Sigue así!',
             great: '¡Gran racha!',
@@ -343,11 +338,10 @@ export const TRANSLATIONS = {
       minutes: 'min',
       passingScore: 'to pass',
       progress: 'Progress',
-      // ✅ --- INICIO DE CAMBIOS ---
       navigator: 'Navigator',
       stats: 'Statistics',
       navigationAndStats: 'Navigation & Statistics',
-      // ✅ --- FIN DE CAMBIOS ---
+      close: 'Close',
       difficulty: {
         basic: 'Basic',
         intermediate: 'Intermediate',
@@ -502,18 +496,17 @@ export const TRANSLATIONS = {
       title: 'Study Mode',
       ui: {
         navigatorTitle: 'Navigator',
+        panelTitle: 'Study Panel', // ✅ NUEVO
         shuffle: 'Shuffle',
         reset: 'Reset',
         mark: 'Mark',
         flip: 'Flip',
         progress: 'studied',
         tip: 'Space/Enter to flip, ← → navigate',
-        // ✅ --- INICIO DE CAMBIOS ---
         cardCurrent: 'Current Card',
         cardStudied: 'Studied',
         cardMarked: 'Marked',
         cardPending: 'Pending'
-        // ✅ --- FIN DE CAMBIOS ---
       },
       modals: {
         exit: {
@@ -562,7 +555,6 @@ export const TRANSLATIONS = {
         currentTitle: 'Current Streak',
         best: 'Best',
         days: 'days',
-        // ✅ --- INICIO DE CAMBIOS ---
         correct: 'Correct Streak',
         consecutiveAnswers: 'consecutive answers',
         messages: {
@@ -572,7 +564,6 @@ export const TRANSLATIONS = {
             great: 'Great streak!',
             legendary: 'Unstoppable!'
           },
-          // ✅ --- FIN DE CAMBIOS ---
           daily: {
             keepGoing: 'Keep it up!',
             great: 'Great streak!',
