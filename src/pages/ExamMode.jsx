@@ -419,16 +419,15 @@ export default function ExamMode() {
         </div>
       )}
 
-{/* ✅ CORRECCIÓN DE POSICIÓN: Mover XP al tope para evitar overlap */}
+{/* ✅ CORRECCIÓN XP: Posición SUPERIOR DERECHA (top-20) */}
       {recentXPGain && (
-        <div className="fixed top-24 right-4 z-50 animate-in slide-in-from-top-5 fade-in duration-300">
-           <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold px-6 py-3 rounded-full shadow-2xl flex items-center gap-2 border border-white/20">
-            <span>✨</span> + {recentXPGain.amount} XP
+        <div className="fixed top-20 right-4 z-[60] animate-in slide-in-from-top-5 fade-in duration-300">
+           <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold px-5 py-2.5 rounded-full shadow-2xl flex items-center gap-2 border border-white/20 ring-4 ring-purple-500/20 backdrop-blur-md">
+            <span className="text-lg">✨</span> 
+            <span className="text-sm">+ {recentXPGain.amount} XP</span>
           </div>
         </div>
       )}
-      
-      {recentlyUnlocked && <AchievementToast achievement={recentlyUnlocked} onClose={clearRecentlyUnlocked} />}
     </div>
   );
 }
