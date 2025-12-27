@@ -1,3 +1,4 @@
+// ... imports igual que antes ...
 import { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useSwipe } from '@/hooks/useSwipe';
@@ -19,11 +20,13 @@ export default function ReviewMode() {
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [filterMode, setFilterMode] = useState('all');
+  
   const [isMobileNavigatorOpen, setIsMobileNavigatorOpen] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   const { playClick } = useSoundContext();
 
+  // ... (useEffects y hooks igual que antes) ...
   useEffect(() => {
     window.scrollTo(0, 0);
     document.body.style.overflow = 'hidden';
@@ -77,6 +80,7 @@ export default function ReviewMode() {
   const currentQuestion = questions[currentRealIndex];
   const userAnswer = currentQuestion ? answers[currentQuestion.id] : undefined;
 
+  // ... (Funciones de navegación igual que antes) ...
   const nextQuestion = () => {
     if (currentIndex < filteredQuestionsIndices.length - 1) {
       playClick();
@@ -97,9 +101,11 @@ export default function ReviewMode() {
     setCurrentIndex(0);
   };
 
+  // ✅ UX FIX: Panel de Navegación con Layout Flex para evitar doble scroll
   const ReviewSidePanel = ({ onClose }) => (
-    <div className="flex flex-col h-full w-full p-6 bg-background">
-      <div className="flex items-center justify-between mb-4 pb-2 border-b border-border">
+    <div className="flex flex-col h-full w-full bg-background">
+      {/* 1. Header Fijo */}
+      <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
         <div className="flex items-center gap-2">
            <span className="text-xl">🔍</span>
            <h3 className="font-bold text-lg text-foreground">{t('review.title')}</h3>
@@ -108,7 +114,9 @@ export default function ReviewMode() {
           <span className="text-2xl font-light leading-none">×</span>
         </Button>
       </div>
-      <div className="flex-1 overflow-y-auto min-h-0 custom-scrollbar pr-2 -mr-2">
+
+      {/* 2. Área de Grid Scrollable (flex-1) */}
+      <div className="flex-1 overflow-y-auto min-h-0 custom-scrollbar p-4">
           <QuestionNavigator
             questions={questions}
             currentIndex={currentRealIndex}
@@ -121,9 +129,11 @@ export default function ReviewMode() {
                 else { setFilterMode('all'); setCurrentIndex(realIndex); }
                 if (onClose) onClose();
             }}
-            variant="sidebar"
+            variant="sidebar" // Asegúrate de que QuestionNavigator soporte 'sidebar' para quitar sus propios bordes/padding si es necesario
           />
       </div>
+      {/* Nota: La leyenda ya está dentro de QuestionNavigator. Si QuestionNavigator tiene altura fija, debemos quitarla.
+         Si QuestionNavigator es fluido, este contenedor lo manejará. */}
     </div>
   );
 
@@ -145,34 +155,52 @@ export default function ReviewMode() {
   return (
     <div className="h-[100dvh] flex flex-col bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 transition-colors duration-300 overflow-hidden">
       
+      {/* 1. HEADER */}
       <ImmersiveHeader showControls={false}>
         <div className="flex items-center gap-2">
+            
+            {/* Sheet Móvil */}
             <Sheet open={isMobileNavigatorOpen} onOpenChange={setIsMobileNavigatorOpen}>
                 <SheetTrigger asChild>
                     <Button variant="ghost" size="icon" className="lg:hidden text-foreground">
                     <span className="text-xl">🗂️</span>
                     </Button>
                 </SheetTrigger>
-                <SheetContent side="bottom" className="h-[85vh] rounded-t-2xl p-0 [&>button]:hidden flex flex-col gap-0 border-t-0">
+                {/* ✅ UX FIX: max-h-[85vh] para el sheet en móvil */}
+                <SheetContent side="bottom" className="h-[70vh] rounded-t-2xl p-0 [&>button]:hidden flex flex-col gap-0 border-t-0">
                     <ReviewSidePanel onClose={() => setIsMobileNavigatorOpen(false)} />
                 </SheetContent>
             </Sheet>
-            <div className="lg:hidden"><MobileSettingsMenu /></div>
-            <Button variant="secondary" size="sm" onClick={() => navigate(`/results/${subjectId}`, { state: { results } })} className="hidden sm:flex gap-2">← {t('common.results')}</Button>
-            <Button variant="secondary" size="sm" onClick={() => navigate(`/results/${subjectId}`, { state: { results } })} className="sm:hidden ml-1">←</Button>
+
+            <div className="lg:hidden">
+              <MobileSettingsMenu />
+            </div>
+
+            <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => navigate(`/results/${subjectId}`, { state: { results } })}
+                className="hidden sm:flex gap-2"
+            >
+                ← {t('common.results')}
+            </Button>
+            <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => navigate(`/results/${subjectId}`, { state: { results } })}
+                className="sm:hidden ml-1"
+            >
+                ←
+            </Button>
         </div>
       </ImmersiveHeader>
       
-      {/* ✅ UX FIX: BARRA DE FILTROS MEJORADA */}
+      {/* 2. BARRA DE FILTROS */}
       <div className="flex-shrink-0 bg-background/95 backdrop-blur-md border-b border-border shadow-sm z-30 sticky top-0">
         <div className="max-w-7xl mx-auto px-4 py-3">
-            {/* ✅ UX FIX: Clases para ocultar scrollbar (scrollbar-hide es común en tailwind plugins, si no funciona, añadimos estilo inline) */}
-            <div 
-                className="flex items-center gap-3 overflow-x-auto pb-1 mask-right scrollbar-hide"
-                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }} /* Fallback para Firefox/IE */
-            >
-                {/* ✅ UX FIX: Eliminado border-r duro, confiamos en el mask-right para la separación */}
-                <div className="flex-shrink-0 pr-3 mr-1">
+            <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-1 mask-right">
+                
+                <div className="flex-shrink-0 pr-3 border-r border-border mr-1">
                     <div className="flex flex-col">
                         <span className="text-[10px] uppercase font-bold text-muted-foreground leading-none mb-1">
                             {t('review.score')}
@@ -203,7 +231,6 @@ export default function ReviewMode() {
                         >
                             <span className="text-sm">{filter.icon}</span>
                             <span className="hidden sm:inline">{filter.label}</span>
-                            {/* ✅ UX FIX: Aumentado margen del contador (ml-2) */}
                             <span className={`ml-2 text-[10px] px-1.5 py-0.5 rounded-full ${
                                 filterMode === filter.id ? 'bg-white/20 text-white' : 'bg-secondary text-foreground'
                             }`}>
@@ -216,6 +243,7 @@ export default function ReviewMode() {
         </div>
       </div>
 
+      {/* 3. ÁREA PRINCIPAL */}
       <main className="flex-1 w-full max-w-4xl mx-auto px-0 sm:px-4 flex flex-col items-center relative min-h-0 overflow-y-auto custom-scrollbar">
           <div className="w-full py-4 px-4 sm:px-0">
             <QuestionCard
@@ -230,6 +258,7 @@ export default function ReviewMode() {
           </div>
       </main>
 
+      {/* 4. FOOTER NAVEGACIÓN */}
       <div className="flex-shrink-0 bg-background border-t border-border p-3 pb-6 sm:pb-3 z-30 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
          <div className="max-w-3xl mx-auto flex items-center gap-3">
             <Button 
@@ -240,9 +269,11 @@ export default function ReviewMode() {
             >
                 ← {t('common.back')}
             </Button>
+
             <div className="text-xs font-mono text-muted-foreground px-2">
                 {currentIndex + 1} / {filteredQuestionsIndices.length}
             </div>
+            
             <Button 
                 onClick={nextQuestion} 
                 disabled={currentIndex === filteredQuestionsIndices.length - 1}
@@ -265,6 +296,7 @@ export default function ReviewMode() {
             <ReviewSidePanel onClose={() => setIsSheetOpen(false)} />
         </SheetContent>
       </Sheet>
+
     </div>
   );
 }

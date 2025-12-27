@@ -419,9 +419,9 @@ export default function ExamMode() {
         </div>
       )}
 
-      {/* XP Toast */}
+{/* ✅ CORRECCIÓN DE POSICIÓN: Mover XP al tope para evitar overlap */}
       {recentXPGain && (
-        <div className="fixed bottom-24 right-4 z-50 animate-in slide-in-from-bottom-5 fade-in duration-300">
+        <div className="fixed top-24 right-4 z-50 animate-in slide-in-from-top-5 fade-in duration-300">
            <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold px-6 py-3 rounded-full shadow-2xl flex items-center gap-2 border border-white/20">
             <span>✨</span> + {recentXPGain.amount} XP
           </div>
