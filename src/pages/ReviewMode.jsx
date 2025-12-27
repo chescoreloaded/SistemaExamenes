@@ -1,11 +1,16 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { useSwipe } from '@/hooks/useSwipe';
 import { Button, Loading, Modal } from '@/components/common';
 import { useSoundContext } from '@/context/SoundContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { ImmersiveHeader } from '@/components/layout';
+import QuestionCard from '@/components/exam/QuestionCard';
+import { QuestionNavigator } from '@/components/exam';
+import MobileSettingsMenu from '@/components/layout/MobileSettingsMenu';
+
+// Shadcn UI
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 export default function ReviewMode() {
   const { subjectId } = useParams();
@@ -16,20 +21,24 @@ export default function ReviewMode() {
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [filterMode, setFilterMode] = useState('all');
-  const [showNavigatorModal, setShowNavigatorModal] = useState(false); // ✅ Reemplaza showNavigator
+  
+  // ✅ CORRECCIÓN DE ERROR: Definimos las variables con los nombres exactos que usa el JSX
+  const [isMobileNavigatorOpen, setIsMobileNavigatorOpen] = useState(false); // Para Móvil
+  const [isSheetOpen, setIsSheetOpen] = useState(false);             // Para Desktop
 
   const { playClick } = useSoundContext();
 
-  // ✅ ARREGLO DE SCROLL (Problema 2)
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []); // Se ejecuta solo una vez al cargar el componente
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = 'auto'; };
+  }, []);
 
   useSwipe(
     () => nextQuestion(),
     () => previousQuestion(),
     null,
-    () => {} // ✅ ARREGLO DE GESTOS: Quitamos el swipe-down
+    () => {} 
   );
 
   useEffect(() => {
@@ -41,55 +50,41 @@ export default function ReviewMode() {
   useEffect(() => {
     const handleKeyPress = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-
       switch(e.key) {
-        case 'ArrowLeft':
-          e.preventDefault();
-          previousQuestion();
-          break;
-        case 'ArrowRight':
-          e.preventDefault();
-          nextQuestion();
-          break;
-        case 'Escape':
-          e.preventDefault();
-          navigate(`/results/${subjectId}`, { state: { results } });
-          break;
-        default:
-          break;
+        case 'ArrowLeft': e.preventDefault(); previousQuestion(); break;
+        case 'ArrowRight': e.preventDefault(); nextQuestion(); break;
+        case 'Escape': e.preventDefault(); navigate(`/results/${subjectId}`, { state: { results } }); break;
+        default: break;
       }
     };
-
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [currentIndex, filterMode, results, navigate, subjectId]);
+  }, [currentIndex, results, navigate, subjectId]);
 
   if (!results) return <Loading fullScreen />;
 
   const questions = results.questions || [];
   const answers = results.answers || {};
 
-  const filteredQuestions = useMemo(() => questions.filter((q) => {
-    const userAnswer = answers[q.id];
-    const isAnswered = userAnswer !== undefined;
-    const isCorrect = isAnswered && userAnswer === q.correct;
+  const filteredQuestionsIndices = useMemo(() => {
+    return questions.map((q, index) => {
+        const userAnswer = answers[q.id];
+        const isAnswered = userAnswer !== undefined;
+        const isCorrect = isAnswered && userAnswer === q.correct;
+        let matches = true;
+        if (filterMode === 'correct') matches = isCorrect;
+        if (filterMode === 'incorrect') matches = isAnswered && !isCorrect;
+        if (filterMode === 'unanswered') matches = !isAnswered;
+        return matches ? index : -1;
+    }).filter(index => index !== -1);
+  }, [questions, answers, filterMode]);
 
-    switch(filterMode) {
-      case 'correct': return isCorrect;
-      case 'incorrect': return isAnswered && !isCorrect;
-      case 'unanswered': return !isAnswered;
-      default: return true;
-    }
-  }), [questions, answers, filterMode]);
-
-  const currentQuestion = filteredQuestions[currentIndex];
+  const currentRealIndex = filteredQuestionsIndices[currentIndex];
+  const currentQuestion = questions[currentRealIndex];
   const userAnswer = currentQuestion ? answers[currentQuestion.id] : undefined;
-  const isAnswered = userAnswer !== undefined;
-  const isCorrect = isAnswered && userAnswer === currentQuestion?.correct;
 
-  // --- Funciones de Navegación (CON SONIDO) ---
   const nextQuestion = () => {
-    if (currentIndex < filteredQuestions.length - 1) {
+    if (currentIndex < filteredQuestionsIndices.length - 1) {
       playClick();
       setCurrentIndex(prev => prev + 1);
     }
@@ -98,16 +93,9 @@ export default function ReviewMode() {
   const previousQuestion = () => {
     if (currentIndex > 0) {
       playClick();
-      setCurrentIndex(prev => prev - 1); // Corregido
+      setCurrentIndex(prev => prev - 1);
     }
   };
-
-  const goToQuestion = (index) => {
-    playClick();
-    setCurrentIndex(index);
-    setShowNavigatorModal(false); // Para móvil
-  };
-  // ---------------------------------------------
 
   const handleFilterChange = (mode) => {
     playClick();
@@ -115,276 +103,195 @@ export default function ReviewMode() {
     setCurrentIndex(0);
   };
 
-  // Componente interno para el navegador (reutilizable)
-  const NavigatorContent = () => (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-4 lg:p-6 border-2 border-gray-100 dark:border-gray-700">
-      <h3 className="font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2 text-base lg:text-lg">
-        <span className="text-xl lg:text-2xl">🗂️</span>
-        {t('review.nav.title')} ({filteredQuestions.length} {t('review.nav.pregs')})
-      </h3>
-
-      <div className="grid grid-cols-5 gap-2 mb-4 max-h-64 lg:max-h-96 overflow-y-auto">
-        {filteredQuestions.map((q, index) => {
-          const answer = answers[q.id];
-          const answered = answer !== undefined;
-          const correct = answered && answer === q.correct;
-          
-          let bgColor = 'bg-white dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-600';
-          if (index === currentIndex) {
-            bgColor = 'bg-gradient-to-br from-indigo-500 to-purple-500 text-white shadow-lg scale-110 ring-4 ring-indigo-300 dark:ring-indigo-600';
-          } else if (correct) {
-            bgColor = 'bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-800 dark:to-emerald-800 text-green-700 dark:text-green-200 border-2 border-green-400 dark:border-green-600';
-          } else if (answered && !correct) {
-            bgColor = 'bg-gradient-to-br from-red-100 to-pink-100 dark:from-red-800 dark:to-pink-800 text-red-700 dark:text-red-200 border-2 border-red-400 dark:border-red-600';
-          } else {
-            bgColor = 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-2 border-gray-300 dark:border-gray-600';
-          }
-
-          return (
-            <button
-              key={index}
-              onClick={() => goToQuestion(index)}
-              className={`aspect-square rounded-lg font-bold text-sm transition-all ${bgColor} hover:scale-105 min-h-[44px]`}
-              aria-label={`Ir a pregunta ${questions.indexOf(q) + 1}`}
-            >
-              {questions.indexOf(q) + 1}
-            </button>
-          );
-        })}
+  const ReviewSidePanel = ({ onClose }) => (
+    <div className="flex flex-col h-full w-full p-6 bg-background">
+      <div className="flex items-center justify-between mb-4 pb-2 border-b border-border">
+        <div className="flex items-center gap-2">
+           <span className="text-xl">🔍</span>
+           <h3 className="font-bold text-lg text-foreground">{t('review.title')}</h3>
+        </div>
+        <Button variant="ghost" size="icon" onClick={() => { playClick(); if (onClose) onClose(); }} className="h-9 w-9 rounded-full text-foreground hover:bg-destructive/10 hover:text-destructive">
+          <span className="text-2xl font-light leading-none">×</span>
+        </Button>
       </div>
-
-      <div className="text-xs text-gray-600 dark:text-gray-300 space-y-2 pt-4 border-t dark:border-gray-700">
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-gradient-to-br from-green-100 to-emerald-100 border-2 border-green-400"></div>
-          <span className="dark:text-gray-400">{t('review.legend.correct')}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-gradient-to-br from-red-100 to-pink-100 border-2 border-red-400"></div>
-          <span className="dark:text-gray-400">{t('review.legend.incorrect')}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-gray-100 border-2 border-gray-300"></div>
-          <span className="dark:text-gray-400">{t('review.legend.unanswered')}</span>
-        </div>
+      <div className="flex-1 overflow-y-auto min-h-0 custom-scrollbar pr-2 -mr-2">
+          <QuestionNavigator
+            questions={questions}
+            currentIndex={currentRealIndex}
+            answers={answers}
+            reviewedQuestions={new Set()}
+            onGoToQuestion={(realIndex) => {
+                playClick();
+                const filterIndex = filteredQuestionsIndices.indexOf(realIndex);
+                if (filterIndex !== -1) { setCurrentIndex(filterIndex); } 
+                else { setFilterMode('all'); setCurrentIndex(realIndex); }
+                if (onClose) onClose();
+            }}
+            variant="sidebar"
+          />
       </div>
     </div>
   );
 
   if (!currentQuestion) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
-        <ImmersiveHeader />
-        <div className="flex items-center justify-center h-[80vh]">
-          {/* ... (JSX de "No hay preguntas") ... */}
+        <div className="h-[100dvh] flex items-center justify-center bg-background">
+            <div className="text-center p-6">
+                <p className="text-muted-foreground mb-4">No hay preguntas en este filtro.</p>
+                <Button onClick={() => setFilterMode('all')}>Ver todas</Button>
+            </div>
         </div>
-      </div>
     );
   }
 
+  const countCorrect = results.correctAnswers;
+  const countIncorrect = results.totalQuestions - results.correctAnswers - (results.totalQuestions - Object.keys(answers).length);
+  const countUnanswered = results.totalQuestions - Object.keys(answers).length;
+
   return (
-    // ✅ ARREGLO DE OVERFLOW (Problema 1)
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 pb-20 lg:pb-0 overflow-x-hidden">
+    <div className="h-[100dvh] flex flex-col bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 transition-colors duration-300 overflow-hidden">
       
-      {/* 2. Usar el nuevo Header Inmersivo */}
-      <ImmersiveHeader>
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => navigate(`/results/${subjectId}`, { state: { results } })}
-          className="hidden sm:flex"
-        >
-          ← {t('common.results')}
-        </Button>
-         <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => navigate(`/`)}
-          className="sm:hidden"
-        >
-          🏠
-        </Button>
+      {/* 1. HEADER */}
+      <ImmersiveHeader showControls={false}>
+        <div className="flex items-center gap-2">
+            
+            {/* Sheet Móvil: Usamos la variable corregida isMobileNavigatorOpen */}
+            <Sheet open={isMobileNavigatorOpen} onOpenChange={setIsMobileNavigatorOpen}>
+                <SheetTrigger asChild>
+                    <Button variant="ghost" size="icon" className="lg:hidden text-foreground">
+                    <span className="text-xl">🗂️</span>
+                    </Button>
+                </SheetTrigger>
+                <SheetContent side="bottom" className="h-[85vh] rounded-t-2xl p-0 [&>button]:hidden flex flex-col gap-0 border-t-0">
+                    <ReviewSidePanel onClose={() => setIsMobileNavigatorOpen(false)} />
+                </SheetContent>
+            </Sheet>
+
+            <div className="lg:hidden">
+              <MobileSettingsMenu />
+            </div>
+
+            <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => navigate(`/results/${subjectId}`, { state: { results } })}
+                className="hidden sm:flex gap-2"
+            >
+                ← {t('common.results')}
+            </Button>
+            <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => navigate(`/results/${subjectId}`, { state: { results } })}
+                className="sm:hidden ml-1"
+            >
+                ←
+            </Button>
+        </div>
       </ImmersiveHeader>
       
-      {/* 3. Nueva "Cabecera de Contexto" Sticky para Filtros */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700 sticky top-16 md:top-20 z-20">
-        <div className="max-w-7xl mx-auto px-4 py-3 lg:py-4">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            
-            <div className="flex-shrink-0">
-              <h1 className="text-xl lg:text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
-                🔍 {t('review.title')}
-              </h1>
-              <p className="text-xs lg:text-sm text-gray-600 dark:text-gray-400 mt-1">
-                {results.subjectName} • {t('review.score')}: {results.score.toFixed(1)}%
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-hide w-full sm:w-auto mask-right">
-              {/* ... (Botones de filtro) ... */}
-              <button
-                onClick={() => handleFilterChange('all')}
-                className={`px-3 lg:px-4 py-2 rounded-lg text-xs lg:text-sm font-medium transition-all whitespace-nowrap min-h-[44px] flex-shrink-0 ${
-                  filterMode === 'all'
-                    ? 'bg-indigo-500 text-white shadow-md'
-                    : 'bg-white dark:bg-gray-700 dark:text-gray-200 text-gray-700 border-2 border-gray-300 dark:border-gray-600 hover:border-indigo-400 dark:hover:border-indigo-500'
-                }`}
-              >
-                {t('review.filters.all')} ({questions.length})
-              </button>
-              <button
-                onClick={() => handleFilterChange('correct')}
-                className={`px-3 lg:px-4 py-2 ... ${
-                  filterMode === 'correct' ? 'bg-green-500 ...' : 'bg-white ...'
-                }`}
-              >
-                ✅ <span className="hidden xl:inline">{t('review.filters.correct')}</span> ({results.correctAnswers})
-              </button>
-              <button
-                onClick={() => handleFilterChange('incorrect')}
-                className={`px-3 lg:px-4 py-2 ... ${
-                  filterMode === 'incorrect' ? 'bg-red-500 ...' : 'bg-white ...'
-                }`}
-              >
-                ❌ <span className="hidden xl:inline">{t('review.filters.incorrect')}</span> ({results.totalQuestions - results.correctAnswers - (results.totalQuestions - Object.keys(answers).length)})
-              </button>
-              <button
-                onClick={() => handleFilterChange('unanswered')}
-                className={`px-3 lg:px-4 py-2 ... ${
-                  filterMode === 'unanswered' ? 'bg-gray-500 ...' : 'bg-white ...'
-                }`}
-              >
-                ⚪ <span className="hidden xl:inline">{t('review.filters.unanswered')}</span> ({results.totalQuestions - Object.keys(answers).length})
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ✅ 4. ARREGLO NAVEGADOR MÓVIL (Botón de Modal) */}
-      <div className="lg:hidden px-4 mt-4">
-        <button
-          onClick={() => setShowNavigatorModal(true)} // <-- Cambiado
-          className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-3 px-4 rounded-xl font-semibold shadow-lg flex items-center justify-center gap-2 min-h-[44px]"
-        >
-          <span className="text-xl">🗂️</span>
-          <span>{t('exam.ui.navigator')}</span> {/* Texto fijo */}
-          <svg className={`w-5 h-5`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 py-4 lg:py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Navigator ASIDE (Solo para Desktop) */}
-          <div className={`lg:col-span-1 order-2 lg:order-1 hidden lg:block`}>
-            <div className="sticky top-40">
-              <NavigatorContent />
-            </div>
-          </div>
-
-          {/* Question Card */}
-          <div className="lg:col-span-3 order-1 lg:order-2">
-            <motion.div 
-              className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-4 lg:p-6 border-2 border-gray-100 dark:border-gray-700"
-              key={currentIndex}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              {/* ... (Contenido idéntico de la tarjeta de pregunta) ... */}
-              <div className="flex flex-col sm:flex-row ... mb-4 pb-3 border-b-2 ...">
-                 {/* ... Header ... */}
-              </div>
-              <div className="mb-6">
-                <h2 className="text-lg ...">{currentQuestion.question}</h2>
-              </div>
-              <div className="space-y-3 mb-6">
-                {currentQuestion.options.map((option, index) => {
-                  {/* ... (Lógica de opciones) ... */}
-                  return (<div key={index} className="...">...</div>)
-                })}
-              </div>
-              <div className={`p-4 rounded-xl border-l-4 mb-6 ...`}>
-                {/* ... (Banner de Status) ... */}
-              </div>
-              {currentQuestion.explanation && (
-                <div className="bg-blue-50 dark:bg-blue-900/30 ...">
-                  {/* ... (Explicación) ... */}
+      {/* 2. BARRA DE FILTROS */}
+      <div className="flex-shrink-0 bg-background/95 backdrop-blur-md border-b border-border shadow-sm z-30 sticky top-0">
+        <div className="max-w-7xl mx-auto px-4 py-3">
+            <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-1 mask-right">
+                
+                <div className="flex-shrink-0 pr-3 border-r border-border mr-1">
+                    <div className="flex flex-col">
+                        <span className="text-[10px] uppercase font-bold text-muted-foreground leading-none mb-1">
+                            {t('review.score')}
+                        </span>
+                        <span className={`text-lg font-black leading-none ${results.score >= 70 ? "text-green-600 dark:text-green-400" : "text-orange-600 dark:text-orange-400"}`}>
+                            {results.score.toFixed(0)}%
+                        </span>
+                    </div>
                 </div>
-              )}
-            </motion.div>
-          </div>
-        </div>
-      </div>
 
-      {/* Footer Navigation (Fijo en móvil) */}
-      <div className="bg-white dark:bg-gray-800 border-t-2 border-gray-200 dark:border-gray-700 fixed bottom-0 left-0 right-0 shadow-2xl z-30">
-        <div className="max-w-7xl mx-auto px-4 py-3 lg:py-4">
-          <div className="flex items-center justify-between gap-2 lg:gap-4">
-            <button
-              onClick={previousQuestion}
-              disabled={currentIndex === 0}
-              className="flex items-center gap-1 ... min-h-[44px]"
-              // ✅ ARREGLO DE SCROLL: Quitado autoFocus
-            >
-              <svg className="w-4 h-4 ..." fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              <span className="hidden sm:inline">{t('common.back')}</span>
-            </button>
-
-            <div className="text-center flex-1">
-              <div className="text-sm font-semibold ...">
-                {currentIndex + 1} de {filteredQuestions.length}
-              </div>
-              <div className="text-xs ... hidden lg:block">
-                <kbd className="font-mono">←→</kbd> {t('footer.shortcuts.nav')}
-              </div>
+                <div className="flex gap-2">
+                    {[
+                        { id: 'all', label: t('review.filters.all'), icon: '📋', count: questions.length, activeClass: 'bg-indigo-600 text-white border-indigo-600' },
+                        { id: 'correct', label: t('review.filters.correct'), icon: '✅', count: countCorrect, activeClass: 'bg-green-600 text-white border-green-600' },
+                        { id: 'incorrect', label: t('review.filters.incorrect'), icon: '❌', count: countIncorrect, activeClass: 'bg-red-600 text-white border-red-600' },
+                        { id: 'unanswered', label: t('review.filters.unanswered'), icon: '⚪', count: countUnanswered, activeClass: 'bg-gray-600 text-white border-gray-600' }
+                    ].map(filter => (
+                        <button
+                            key={filter.id}
+                            onClick={() => handleFilterChange(filter.id)}
+                            className={`
+                                flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap border
+                                ${filterMode === filter.id 
+                                    ? filter.activeClass 
+                                    : 'bg-background text-muted-foreground border-border hover:bg-accent'
+                                }
+                            `}
+                        >
+                            <span className="text-sm">{filter.icon}</span>
+                            <span className="hidden sm:inline">{filter.label}</span>
+                            <span className={`ml-1 text-[10px] px-1.5 py-0.5 rounded-full ${
+                                filterMode === filter.id ? 'bg-white/20 text-white' : 'bg-secondary text-foreground'
+                            }`}>
+                                {filter.count}
+                            </span>
+                        </button>
+                    ))}
+                </div>
             </div>
-
-            {currentIndex < filteredQuestions.length - 1 ? (
-              <button
-                onClick={nextQuestion}
-                className="flex items-center gap-1 ... min-h-[44px]"
-                // ✅ ARREGLO DE SCROLL: Quitado autoFocus
-              >
-                <span className="hidden sm:inline">{t('common.next')}</span>
-                <svg className="w-4 h-4 ..." fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            ) : (
-              <div className="flex gap-2 lg:gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => navigate(`/results/${subjectId}`, { state: { results } })}
-                  className="text-xs lg:text-sm ... min-h-[44px] hidden sm:flex"
-                >
-                  📊 {t('common.results')}
-                </Button>
-                <Button
-                  variant="primary"
-                  onClick={() => navigate('/')}
-                  className="text-xs lg:text-sm ... min-h-[44px]"
-                >
-                  🏠 {t('common.home')}
-                </Button>
-              </div>
-            )}
-          </div>
         </div>
       </div>
 
-      {/* ✅ 5. NAVEGADOR EN MODAL (Solo para Móvil) */}
-      <Modal 
-        isOpen={showNavigatorModal} 
-        onClose={() => setShowNavigatorModal(false)} 
-        title={t('review.nav.title')}
-        size="lg" // Usamos un tamaño grande para que quepa la cuadrícula
-      >
-        <NavigatorContent />
-      </Modal>
+      {/* 3. ÁREA PRINCIPAL */}
+      <main className="flex-1 w-full max-w-4xl mx-auto px-0 sm:px-4 flex flex-col items-center relative min-h-0 overflow-y-auto custom-scrollbar">
+          <div className="w-full py-4 px-4 sm:px-0">
+            <QuestionCard
+                question={currentQuestion}
+                currentIndex={currentRealIndex}
+                totalQuestions={questions.length}
+                onSelectAnswer={() => {}} 
+                selectedAnswer={userAnswer}
+                showFeedback={true}
+                mode="practice"
+            />
+          </div>
+      </main>
+
+      {/* 4. FOOTER NAVEGACIÓN */}
+      <div className="flex-shrink-0 bg-background border-t border-border p-3 pb-6 sm:pb-3 z-30 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+         <div className="max-w-3xl mx-auto flex items-center gap-3">
+            <Button 
+                onClick={previousQuestion} 
+                disabled={currentIndex === 0}
+                variant="outline" 
+                className="flex-1 h-12 text-base font-semibold border-gray-300 dark:border-gray-600 bg-background hover:bg-accent text-foreground"
+            >
+                ← {t('common.back')}
+            </Button>
+
+            <div className="text-xs font-mono text-muted-foreground px-2">
+                {currentIndex + 1} / {filteredQuestionsIndices.length}
+            </div>
+            
+            <Button 
+                onClick={nextQuestion} 
+                disabled={currentIndex === filteredQuestionsIndices.length - 1}
+                className="flex-1 h-12 text-base font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-md"
+            >
+                {t('common.next')} →
+            </Button>
+         </div>
+      </div>
+
+      {/* Sheet para Desktop: Usamos isSheetOpen */}
+      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+        <SheetTrigger asChild>
+           <div className="hidden lg:flex items-center justify-center fixed top-1/2 -translate-y-1/2 right-0 z-40 h-36 w-10 px-1 py-4 bg-card border-l border-y border-border rounded-l-lg shadow-lg cursor-pointer hover:bg-accent hover:w-12 transition-all group">
+            <span className="[writing-mode:vertical-rl] text-sm font-medium tracking-wide flex items-center gap-2 group-hover:text-primary">
+                <span className="text-base rotate-90">🗂️</span> {t('common.navigator')}
+            </span>
+          </div>
+        </SheetTrigger>
+        <SheetContent side="right" className="w-[400px] p-0 [&>button]:hidden flex flex-col gap-0 border-l border-border">
+            <ReviewSidePanel onClose={() => setIsSheetOpen(false)} />
+        </SheetContent>
+      </Sheet>
 
     </div>
   );

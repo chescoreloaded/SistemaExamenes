@@ -53,7 +53,7 @@ export const TRANSLATIONS = {
         showing: 'Mostrando {start}-{end} de {total} resultados'
       }
     },
-    // ✅ NUEVA SECCIÓN: AJUSTES (Para el menú móvil y modal de sonido)
+    // ✅ SECCIÓN DE AJUSTES
     settings: {
       title: 'Ajustes',
       sound: 'Sonido',
@@ -174,8 +174,10 @@ export const TRANSLATIONS = {
         title: 'Atajos',
         nav: 'Navegar',
         select: 'Seleccionar',
-        mark: 'Mark',
-        next: 'Siguiente'
+        // ✅ CORRECCIÓN CONSISTENCIA: 'Mark' -> 'Marcar'
+        mark: 'Marcar', 
+        next: 'Siguiente',
+        confirm: 'Confirmar'
       },
       feedback: {
         correct: {
@@ -189,7 +191,8 @@ export const TRANSLATIONS = {
         labels: {
           question: 'PREGUNTA',
           yourAnswer: 'Tu respuesta:',
-          correctAnswer: 'Respuesta correcta:'
+          correctAnswer: 'Respuesta correcta:',
+          yourCorrectAnswer: 'Tu respuesta (Correcta):'
         },
         actions: {
           seeExplanation: 'Ver explicación',
@@ -242,10 +245,19 @@ export const TRANSLATIONS = {
     review: {
       title: 'Revisión',
       score: 'Calificación',
+      nav: {
+        title: 'Navegador',
+        pregs: 'preguntas'
+      },
       filters: {
         all: 'Todas',
         correct: 'Correctas',
         incorrect: 'Incorrectas',
+        unanswered: 'Sin responder'
+      },
+      legend: {
+        correct: 'Correcta',
+        incorrect: 'Incorrecta',
         unanswered: 'Sin responder'
       },
       question: {
@@ -375,7 +387,6 @@ export const TRANSLATIONS = {
         showing: 'Showing {start}-{end} of {total} results'
       }
     },
-    // ✅ NUEVA SECCIÓN: AJUSTES EN INGLÉS
     settings: {
       title: 'Settings',
       sound: 'Sound',
@@ -497,7 +508,8 @@ export const TRANSLATIONS = {
         nav: 'Navigate',
         select: 'Select',
         mark: 'Mark',
-        next: 'Next'
+        next: 'Next',
+        confirm: 'Confirm'
       },
       feedback: {
         correct: {
@@ -511,7 +523,8 @@ export const TRANSLATIONS = {
         labels: {
           question: 'QUESTION',
           yourAnswer: 'Your answer:',
-          correctAnswer: 'Correct answer:'
+          correctAnswer: 'Correct answer:',
+          yourCorrectAnswer: 'Your answer (Correct):'
         },
         actions: {
           seeExplanation: 'See explanation',
@@ -564,8 +577,17 @@ export const TRANSLATIONS = {
     review: {
       title: 'Review',
       score: 'Score',
+      nav: {
+        title: 'Navigator',
+        pregs: 'questions'
+      },
       filters: {
         all: 'All',
+        correct: 'Correct',
+        incorrect: 'Incorrect',
+        unanswered: 'Unanswered'
+      },
+      legend: {
         correct: 'Correct',
         incorrect: 'Incorrect',
         unanswered: 'Unanswered'

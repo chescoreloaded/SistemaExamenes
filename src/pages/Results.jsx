@@ -1,13 +1,13 @@
-// src/pages/Results.jsx
 import { useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Breadcrumbs } from '@/components/common/Breadcrumbs';
 import { Card, Button } from '@/components/common';
 import { useSoundContext } from '@/context/SoundContext';
 import { dbManager } from '@/lib/indexedDB';
 import { useLanguage } from '@/context/LanguageContext';
 import { ImmersiveHeader } from '@/components/layout';
+// ✅ IMPORTANTE: Menú de ajustes
+import MobileSettingsMenu from '@/components/layout/MobileSettingsMenu';
 
 export default function Results() {
   const { subjectId } = useParams();
@@ -45,10 +45,13 @@ export default function Results() {
           timestamp: Date.now()
         };
         await dbManager.saveExamSession(sessionData);
+        // Lógica de XP
         const xpPerCorrect = 10;
         const bonusXP = sessionData.passed ? 50 : 0;
         const totalXP = (results.correctAnswers * xpPerCorrect) + bonusXP;
         await dbManager.addXP(totalXP, 'Examen completado');
+        
+        // Actualizar estadísticas globales
         const currentPoints = await dbManager.getUserPoints();
         await dbManager.updateUserPoints({
           ...currentPoints,
@@ -56,6 +59,7 @@ export default function Results() {
           totalWrongAnswers: currentPoints.totalWrongAnswers + (results.totalQuestions - results.correctAnswers),
           totalExamsCompleted: currentPoints.totalExamsCompleted + 1
         });
+        
         await dbManager.saveStats({
           type: 'exam',
           subjectId: subjectId,
@@ -76,12 +80,6 @@ export default function Results() {
 
   const passed = results.score >= results.passingScore;
 
-  const breadcrumbItems = [
-    { label: t('common.home'), href: '/', icon: '🏠' },
-    { label: results.subjectName, href: '/', icon: '📚' },
-    { label: t('results.breadcrumb'), icon: '📊' }
-  ];
-
   const handleReviewClick = () => { playClick(); navigate(`/review/${subjectId}`, { state: { results } }); };
   const handleHomeClick = () => { playClick(); navigate('/'); };
   const handleRetryClick = () => { playClick(); navigate(`/exam/${subjectId}?mode=exam`); };
@@ -89,17 +87,13 @@ export default function Results() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-indigo-950 dark:to-purple-950 transition-colors duration-300">
       
-      {/* ✅ 2. Usar el nuevo Header Inmersivo flexible */}
-      <ImmersiveHeader
-        leftSlot={
-          <Breadcrumbs 
-            items={breadcrumbItems} 
-            // Clases para asegurar que el texto sea visible sobre el fondo blur
-            className="bg-transparent border-none p-0 shadow-none [&_a]:text-gray-800 dark:[&_a]:text-gray-200 [&_span]:text-gray-800 dark:[&_span]:text-gray-200" 
-          />
-        }
-        // No pasamos children (rightSlot), así que solo mostrará los HeaderControls
-      />
+      {/* ✅ HEADER FIXED: Usamos showControls={false} para limpiar y ponemos el engrane manualmente */}
+      <ImmersiveHeader showControls={false}>
+         <div className="flex items-center gap-2">
+            {/* Menú de Ajustes Limpio */}
+            <MobileSettingsMenu />
+         </div>
+      </ImmersiveHeader>
       
       <div className="max-w-4xl mx-auto px-4 py-8 lg:py-12">
         <motion.div
@@ -135,9 +129,9 @@ export default function Results() {
           <Card className="p-8 mb-8 bg-white/80 dark:bg-gray-800/50 backdrop-blur-md border-2 border-white/50 dark:border-white/10 shadow-2xl">
             <div className="text-center">
               <div className="text-7xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent transition-colors duration-300">
-                {results.score.toFixed(1)}%
+                {results.score.toFixed(0)}%
               </div>
-              <p className="text-gray-600 dark:text-gray-300 text-lg mb-6 transition-colors duration-300">
+              <p className="text-gray-600 dark:text-gray-300 text-lg mb-6 transition-colors duration-300 font-medium tracking-wide uppercase text-xs opacity-70">
                 {t('results.scoreLabel')}
               </p>
               
@@ -146,23 +140,25 @@ export default function Results() {
                   <div className="text-3xl font-bold text-green-600 dark:text-green-400">
                     {results.correctAnswers}
                   </div>
-                  <div className="text-xs lg:text-sm text-gray-600 dark:text-gray-300">
+                  <div className="text-[10px] lg:text-xs font-bold uppercase text-green-600/70 dark:text-green-400/70 mt-1">
                     {t('results.stats.correct')}
                   </div>
                 </div>
+                
                 <div className="bg-red-50/50 dark:bg-red-900/20 p-4 rounded-xl border border-red-200/50 dark:border-red-700/30 backdrop-blur-sm">
                   <div className="text-3xl font-bold text-red-600 dark:text-red-400">
                     {results.totalQuestions - results.correctAnswers}
                   </div>
-                  <div className="text-xs lg:text-sm text-gray-600 dark:text-gray-300">
+                  <div className="text-[10px] lg:text-xs font-bold uppercase text-red-600/70 dark:text-red-400/70 mt-1">
                     {t('results.stats.incorrect')}
                   </div>
                 </div>
+                
                 <div className="bg-blue-50/50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-200/50 dark:border-blue-700/30 backdrop-blur-sm">
-                  <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                  <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 font-mono">
                     {Math.floor(results.timeSpent / 60)}:{(results.timeSpent % 60).toString().padStart(2, '0')}
                   </div>
-                  <div className="text-xs lg:text-sm text-gray-600 dark:text-gray-300">
+                  <div className="text-[10px] lg:text-xs font-bold uppercase text-blue-600/70 dark:text-blue-400/70 mt-1">
                     {t('results.stats.time')}
                   </div>
                 </div>
@@ -172,43 +168,37 @@ export default function Results() {
         </motion.div>
 
         <motion.div
-          className="mb-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
+          className="w-full space-y-3"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
         >
           <button
             onClick={handleReviewClick}
-            className="w-full bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500 dark:from-purple-600 dark:via-indigo-600 dark:to-blue-600 hover:from-purple-600 hover:via-indigo-600 hover:to-blue-600 dark:hover:from-purple-700 dark:hover:via-indigo-700 dark:hover:to-blue-700 text-white py-4 px-6 rounded-xl font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] flex items-center justify-center gap-3"
+            className="w-full bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-700 hover:via-indigo-700 hover:to-blue-700 text-white py-4 px-6 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all transform active:scale-[0.98] flex items-center justify-center gap-3"
           >
             <span className="text-2xl">🔍</span>
             <span>{t('results.actions.review')}</span>
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
           </button>
-        </motion.div>
 
-        <motion.div
-          className="flex gap-4 justify-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-        >
-          <Button
-            variant="outline"
-            onClick={handleHomeClick}
-            className="px-8 py-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-white dark:hover:bg-gray-800 transition-colors"
-          >
-            ← {t('results.actions.home')}
-          </Button>
-          <Button
-            variant="primary"
-            onClick={handleRetryClick}
-            className="px-8 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 dark:from-blue-600 dark:to-indigo-600 hover:from-blue-600 hover:to-indigo-600 dark:hover:from-blue-700 dark:hover:to-indigo-700 transition-all duration-300"
-          >
-            🔄 {t('results.actions.retry')}
-          </Button>
+          <div className="grid grid-cols-2 gap-3">
+{/* ✅ CORRECCIÓN CRÍTICA: !bg-transparent fuerza la transparencia */}
+            <Button
+                variant="outline"
+                onClick={handleHomeClick}
+                className="h-14 !bg-transparent border-2 border-white/20 dark:border-white/20 text-gray-800 dark:text-white hover:bg-white/10 transition-colors font-bold text-sm backdrop-blur-md"
+            >
+                🏠 {t('results.actions.home')}
+            </Button>
+            
+            <Button
+                variant="primary"
+                onClick={handleRetryClick}
+                className="h-14 bg-blue-600 hover:bg-blue-700 text-white border-0 font-bold text-sm shadow-md"
+            >
+                🔄 {t('results.actions.retry')}
+            </Button>
+          </div>
         </motion.div>
       </div>
     </div>
