@@ -30,7 +30,7 @@ export const TRANSLATIONS = {
       navigator: 'Navegador',
       stats: 'Estadísticas',
       navigationAndStats: 'Navegación y Estadísticas',
-      close: 'Cerrar', // Recomendado agregar si se usa en tooltips
+      close: 'Cerrar',
       difficulty: {
         basic: 'Básico',
         intermediate: 'Intermedio',
@@ -52,6 +52,20 @@ export const TRANSLATIONS = {
         pageOf: 'Página {current} de {total}',
         showing: 'Mostrando {start}-{end} de {total} resultados'
       }
+    },
+    // ✅ NUEVA SECCIÓN: AJUSTES (Para el menú móvil y modal de sonido)
+    settings: {
+      title: 'Ajustes',
+      sound: 'Sonido',
+      soundTitle: 'Control de Sonido',
+      volume: 'Volumen',
+      testSound: 'Probar sonido',
+      mute: 'Silenciar',
+      unmute: 'Activar sonido',
+      darkMode: 'Modo Oscuro',
+      lightMode: 'Modo Claro',
+      language: 'Idioma',
+      close: 'Cerrar'
     },
     navigation: {
       home: 'Mis Cursos',
@@ -188,7 +202,7 @@ export const TRANSLATIONS = {
       title: 'Modo Estudio',
       ui: {
         navigatorTitle: 'Navegación',
-        panelTitle: 'Panel de Estudio', // ✅ NUEVO
+        panelTitle: 'Panel de Estudio',
         shuffle: 'Mezclar',
         reset: 'Reiniciar',
         mark: 'Marcar',
@@ -361,6 +375,20 @@ export const TRANSLATIONS = {
         showing: 'Showing {start}-{end} of {total} results'
       }
     },
+    // ✅ NUEVA SECCIÓN: AJUSTES EN INGLÉS
+    settings: {
+      title: 'Settings',
+      sound: 'Sound',
+      soundTitle: 'Sound Control',
+      volume: 'Volume',
+      testSound: 'Test Sound',
+      mute: 'Mute',
+      unmute: 'Unmute',
+      darkMode: 'Dark Mode',
+      lightMode: 'Light Mode',
+      language: 'Language',
+      close: 'Close'
+    },
     navigation: {
       home: 'My Courses',
       explorer: 'Explore',
@@ -496,7 +524,7 @@ export const TRANSLATIONS = {
       title: 'Study Mode',
       ui: {
         navigatorTitle: 'Navigator',
-        panelTitle: 'Study Panel', // ✅ NUEVO
+        panelTitle: 'Study Panel',
         shuffle: 'Shuffle',
         reset: 'Reset',
         mark: 'Mark',
