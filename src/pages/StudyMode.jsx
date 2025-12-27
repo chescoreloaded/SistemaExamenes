@@ -14,8 +14,8 @@ import { ImmersiveHeader } from '@/components/layout';
 
 // Shadcn UI Components
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+// Nota: Ya no necesitamos Dialog para la navegación, solo para modales internos si los hubiera.
 
 export default function StudyMode() {
   const { subjectId } = useParams();
@@ -24,8 +24,10 @@ export default function StudyMode() {
   
   // Estados de UI
   const [showExitModal, setShowExitModal] = useState(false);
-  const [showNavigatorModal, setShowNavigatorModal] = useState(false); // Mobile control
-  const [isSheetOpen, setIsSheetOpen] = useState(false); // Desktop control
+  
+  // ✅ ESTADOS DE NAVEGACIÓN (CONTROLADOS)
+  const [showNavigatorModal, setShowNavigatorModal] = useState(false); // Control Móvil
+  const [isSheetOpen, setIsSheetOpen] = useState(false); // Control Desktop
 
   const { 
     playClick,
@@ -152,7 +154,10 @@ export default function StudyMode() {
    * Incluye la cabecera personalizada con botón de cierre de alto contraste.
    */
   const StudySidePanel = ({ onClose }) => (
-    <div className="flex flex-col h-full w-full">
+    // ✅ FIX: 'bg-background' asegura que no se vea blanco en dark mode.
+    // ✅ FIX: 'p-6' da el espaciado interno necesario.
+    <div className="flex flex-col h-full w-full p-6 bg-background">
+      
       {/* 1. Cabecera Personalizada (Header) */}
       <div className="flex items-center justify-between mb-4 pb-2 border-b border-border">
         <div className="flex items-center gap-2">
@@ -162,11 +167,12 @@ export default function StudyMode() {
            </h3>
         </div>
         
-        {/* Botón de cierre optimizado para visibilidad */}
+        {/* ✅ Botón de cierre conectado a la función onClose */}
         <Button 
           variant="ghost" 
           size="icon" 
-          onClick={() => {
+          onClick={(e) => {
+            e.stopPropagation(); // Previene eventos fantasma
             playClick();
             if (onClose) onClose();
           }}
@@ -197,6 +203,7 @@ export default function StudyMode() {
             onGoToCard={(index) => {
               playClick();
               goToCard(index);
+              // ✅ Cerramos el panel al seleccionar una carta (mejor UX en móvil)
               if (onClose) onClose();
             }}
             variant="sidebar"
@@ -286,18 +293,23 @@ export default function StudyMode() {
           ← {t('common.exit')}
         </Button>
         
-        {/* Trigger Móvil (Dialog) */}
-        <Dialog open={showNavigatorModal} onOpenChange={setShowNavigatorModal}>
-          <DialogTrigger asChild>
+        {/* ✅ NAVEGACIÓN MÓVIL (SHEET INFERIOR) */}
+        {/* Usamos el estado showNavigatorModal */}
+        <Sheet open={showNavigatorModal} onOpenChange={setShowNavigatorModal}>
+          <SheetTrigger asChild>
             <Button variant="secondary" size="sm" className="lg:hidden">
               🗂️ {t('study.ui.navigatorTitle') || "Cards"}
             </Button>
-          </DialogTrigger>
-          {/* ✅ Ocultamos la X por defecto y usamos nuestro StudySidePanel */}
-          <DialogContent className="max-w-lg h-[85vh] flex flex-col p-6 [&>button]:hidden gap-0">
+          </SheetTrigger>
+          {/* side="bottom" para móvil, p-0 para quitar bordes blancos */}
+          <SheetContent 
+            side="bottom" 
+            className="h-[85vh] rounded-t-2xl p-0 [&>button]:hidden flex flex-col gap-0 border-t-0 focus:outline-none"
+          >
+             {/* ✅ Pasamos la función de cierre correcta para el móvil */}
              <StudySidePanel onClose={() => setShowNavigatorModal(false)} />
-          </DialogContent>
-        </Dialog>
+          </SheetContent>
+        </Sheet>
       </ImmersiveHeader>
 
       {/* 2. Barra de Contexto (Sticky) */}
@@ -339,7 +351,8 @@ export default function StudyMode() {
         </div>
       </div>
 
-      {/* 3. Panel Lateral Desktop (Sheet) */}
+      {/* 3. NAVEGACIÓN DESKTOP (SHEET LATERAL) */}
+      {/* Usamos el estado isSheetOpen */}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetTrigger asChild>
           <div
@@ -357,8 +370,12 @@ export default function StudyMode() {
             </span>
           </div>
         </SheetTrigger>
-        {/* ✅ Ocultamos la X por defecto */}
-        <SheetContent className="w-[400px] p-6 [&>button]:hidden flex flex-col gap-0" side="right">
+        {/* side="right" para desktop */}
+        <SheetContent 
+            side="right" 
+            className="w-[400px] p-0 [&>button]:hidden flex flex-col gap-0 border-l border-border"
+        >
+            {/* ✅ Pasamos la función de cierre correcta para el desktop */}
             <StudySidePanel onClose={() => setIsSheetOpen(false)} />
         </SheetContent>
       </Sheet>
