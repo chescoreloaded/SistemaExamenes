@@ -8,8 +8,6 @@ import { ImmersiveHeader } from '@/components/layout';
 import QuestionCard from '@/components/exam/QuestionCard';
 import { QuestionNavigator } from '@/components/exam';
 import MobileSettingsMenu from '@/components/layout/MobileSettingsMenu';
-
-// Shadcn UI
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 export default function ReviewMode() {
@@ -21,10 +19,8 @@ export default function ReviewMode() {
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [filterMode, setFilterMode] = useState('all');
-  
-  // ✅ CORRECCIÓN DE ERROR: Definimos las variables con los nombres exactos que usa el JSX
-  const [isMobileNavigatorOpen, setIsMobileNavigatorOpen] = useState(false); // Para Móvil
-  const [isSheetOpen, setIsSheetOpen] = useState(false);             // Para Desktop
+  const [isMobileNavigatorOpen, setIsMobileNavigatorOpen] = useState(false);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   const { playClick } = useSoundContext();
 
@@ -42,9 +38,7 @@ export default function ReviewMode() {
   );
 
   useEffect(() => {
-    if (!results) {
-      navigate('/');
-    }
+    if (!results) { navigate('/'); }
   }, [results, navigate]);
 
   useEffect(() => {
@@ -151,11 +145,8 @@ export default function ReviewMode() {
   return (
     <div className="h-[100dvh] flex flex-col bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 transition-colors duration-300 overflow-hidden">
       
-      {/* 1. HEADER */}
       <ImmersiveHeader showControls={false}>
         <div className="flex items-center gap-2">
-            
-            {/* Sheet Móvil: Usamos la variable corregida isMobileNavigatorOpen */}
             <Sheet open={isMobileNavigatorOpen} onOpenChange={setIsMobileNavigatorOpen}>
                 <SheetTrigger asChild>
                     <Button variant="ghost" size="icon" className="lg:hidden text-foreground">
@@ -166,36 +157,22 @@ export default function ReviewMode() {
                     <ReviewSidePanel onClose={() => setIsMobileNavigatorOpen(false)} />
                 </SheetContent>
             </Sheet>
-
-            <div className="lg:hidden">
-              <MobileSettingsMenu />
-            </div>
-
-            <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => navigate(`/results/${subjectId}`, { state: { results } })}
-                className="hidden sm:flex gap-2"
-            >
-                ← {t('common.results')}
-            </Button>
-            <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => navigate(`/results/${subjectId}`, { state: { results } })}
-                className="sm:hidden ml-1"
-            >
-                ←
-            </Button>
+            <div className="lg:hidden"><MobileSettingsMenu /></div>
+            <Button variant="secondary" size="sm" onClick={() => navigate(`/results/${subjectId}`, { state: { results } })} className="hidden sm:flex gap-2">← {t('common.results')}</Button>
+            <Button variant="secondary" size="sm" onClick={() => navigate(`/results/${subjectId}`, { state: { results } })} className="sm:hidden ml-1">←</Button>
         </div>
       </ImmersiveHeader>
       
-      {/* 2. BARRA DE FILTROS */}
+      {/* ✅ UX FIX: BARRA DE FILTROS MEJORADA */}
       <div className="flex-shrink-0 bg-background/95 backdrop-blur-md border-b border-border shadow-sm z-30 sticky top-0">
         <div className="max-w-7xl mx-auto px-4 py-3">
-            <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-1 mask-right">
-                
-                <div className="flex-shrink-0 pr-3 border-r border-border mr-1">
+            {/* ✅ UX FIX: Clases para ocultar scrollbar (scrollbar-hide es común en tailwind plugins, si no funciona, añadimos estilo inline) */}
+            <div 
+                className="flex items-center gap-3 overflow-x-auto pb-1 mask-right scrollbar-hide"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }} /* Fallback para Firefox/IE */
+            >
+                {/* ✅ UX FIX: Eliminado border-r duro, confiamos en el mask-right para la separación */}
+                <div className="flex-shrink-0 pr-3 mr-1">
                     <div className="flex flex-col">
                         <span className="text-[10px] uppercase font-bold text-muted-foreground leading-none mb-1">
                             {t('review.score')}
@@ -226,7 +203,8 @@ export default function ReviewMode() {
                         >
                             <span className="text-sm">{filter.icon}</span>
                             <span className="hidden sm:inline">{filter.label}</span>
-                            <span className={`ml-1 text-[10px] px-1.5 py-0.5 rounded-full ${
+                            {/* ✅ UX FIX: Aumentado margen del contador (ml-2) */}
+                            <span className={`ml-2 text-[10px] px-1.5 py-0.5 rounded-full ${
                                 filterMode === filter.id ? 'bg-white/20 text-white' : 'bg-secondary text-foreground'
                             }`}>
                                 {filter.count}
@@ -238,7 +216,6 @@ export default function ReviewMode() {
         </div>
       </div>
 
-      {/* 3. ÁREA PRINCIPAL */}
       <main className="flex-1 w-full max-w-4xl mx-auto px-0 sm:px-4 flex flex-col items-center relative min-h-0 overflow-y-auto custom-scrollbar">
           <div className="w-full py-4 px-4 sm:px-0">
             <QuestionCard
@@ -253,7 +230,6 @@ export default function ReviewMode() {
           </div>
       </main>
 
-      {/* 4. FOOTER NAVEGACIÓN */}
       <div className="flex-shrink-0 bg-background border-t border-border p-3 pb-6 sm:pb-3 z-30 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
          <div className="max-w-3xl mx-auto flex items-center gap-3">
             <Button 
@@ -264,11 +240,9 @@ export default function ReviewMode() {
             >
                 ← {t('common.back')}
             </Button>
-
             <div className="text-xs font-mono text-muted-foreground px-2">
                 {currentIndex + 1} / {filteredQuestionsIndices.length}
             </div>
-            
             <Button 
                 onClick={nextQuestion} 
                 disabled={currentIndex === filteredQuestionsIndices.length - 1}
@@ -279,7 +253,6 @@ export default function ReviewMode() {
          </div>
       </div>
 
-      {/* Sheet para Desktop: Usamos isSheetOpen */}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetTrigger asChild>
            <div className="hidden lg:flex items-center justify-center fixed top-1/2 -translate-y-1/2 right-0 z-40 h-36 w-10 px-1 py-4 bg-card border-l border-y border-border rounded-l-lg shadow-lg cursor-pointer hover:bg-accent hover:w-12 transition-all group">
@@ -292,7 +265,6 @@ export default function ReviewMode() {
             <ReviewSidePanel onClose={() => setIsSheetOpen(false)} />
         </SheetContent>
       </Sheet>
-
     </div>
   );
 }
