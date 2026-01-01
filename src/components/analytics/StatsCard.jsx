@@ -2,10 +2,6 @@ import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 
-/**
- * StatsCard - Card de estadística con animación y dark mode
- * Muestra un valor principal, label, icono y valor secundario opcional
- */
 export function StatsCard({
   icon,
   label,
@@ -21,68 +17,29 @@ export function StatsCard({
   const [displayValue, setDisplayValue] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
 
-  // Colores por tipo
+  // Paletas de colores vibrantes y modernas
   const colorVariants = {
-    blue: {
-      gradient: 'from-blue-500 to-indigo-500 dark:from-blue-600 dark:to-indigo-600',
-      hover: 'hover:from-blue-600 hover:to-indigo-600 dark:hover:from-blue-700 dark:hover:to-indigo-700',
-      glow: 'shadow-blue-500/50 dark:shadow-blue-600/30'
-    },
-    purple: {
-      gradient: 'from-purple-500 to-pink-500 dark:from-purple-600 dark:to-pink-600',
-      hover: 'hover:from-purple-600 hover:to-pink-600 dark:hover:from-purple-700 dark:hover:to-pink-700',
-      glow: 'shadow-purple-500/50 dark:shadow-purple-600/30'
-    },
-    green: {
-      gradient: 'from-green-500 to-emerald-500 dark:from-green-600 dark:to-emerald-600',
-      hover: 'hover:from-green-600 hover:to-emerald-600 dark:hover:from-green-700 dark:hover:to-emerald-700',
-      glow: 'shadow-green-500/50 dark:shadow-green-600/30'
-    },
-    orange: {
-      gradient: 'from-orange-500 to-red-500 dark:from-orange-600 dark:to-red-600',
-      hover: 'hover:from-orange-600 hover:to-red-600 dark:hover:from-orange-700 dark:hover:to-red-700',
-      glow: 'shadow-orange-500/50 dark:shadow-orange-600/30'
-    },
-    cyan: {
-      gradient: 'from-cyan-500 to-blue-500 dark:from-cyan-600 dark:to-blue-600',
-      hover: 'hover:from-cyan-600 hover:to-blue-600 dark:hover:from-cyan-700 dark:hover:to-blue-700',
-      glow: 'shadow-cyan-500/50 dark:shadow-cyan-600/30'
-    },
-    yellow: {
-      gradient: 'from-yellow-500 to-orange-500 dark:from-yellow-600 dark:to-orange-600',
-      hover: 'hover:from-yellow-600 hover:to-orange-600 dark:hover:from-yellow-700 dark:hover:to-orange-700',
-      glow: 'shadow-yellow-500/50 dark:shadow-yellow-600/30'
-    }
+    blue:   { bg: 'bg-blue-500',   from: 'from-blue-500',   to: 'to-indigo-600',   text: 'text-white', iconBg: 'bg-white/20' },
+    purple: { bg: 'bg-purple-500', from: 'from-purple-500', to: 'to-pink-600',     text: 'text-white', iconBg: 'bg-white/20' },
+    green:  { bg: 'bg-green-500',  from: 'from-emerald-500',to: 'to-green-600',    text: 'text-white', iconBg: 'bg-white/20' },
+    orange: { bg: 'bg-orange-500', from: 'from-orange-500', to: 'to-red-500',      text: 'text-white', iconBg: 'bg-white/20' },
+    cyan:   { bg: 'bg-cyan-500',   from: 'from-cyan-500',   to: 'to-blue-500',     text: 'text-white', iconBg: 'bg-white/20' },
   };
 
-  const colors = colorVariants[color] || colorVariants.blue;
+  const theme = colorVariants[color] || colorVariants.blue;
 
-  // Animación de counter para números
+  // Animación numérica
   useEffect(() => {
-    if (!animateValue) {
-      setDisplayValue(value);
-      return;
-    }
+    if (!animateValue) { setDisplayValue(value); return; }
+    const numericValue = typeof value === 'string' ? parseFloat(value.replace(/[^0-9.]/g, '')) : value;
+    if (isNaN(numericValue)) { setDisplayValue(value); return; }
 
-    // Extraer número del valor (puede ser "85%" o 85)
-    const numericValue = typeof value === 'string' 
-      ? parseFloat(value.replace(/[^0-9.]/g, '')) 
-      : value;
-
-    if (isNaN(numericValue)) {
-      setDisplayValue(value);
-      return;
-    }
-
-    // Animar desde 0 hasta el valor
-    const duration = 1000; // 1 segundo
+    const duration = 1000;
     const steps = 30;
-    const increment = numericValue / steps;
     const stepDuration = duration / steps;
-
     let current = 0;
     const timer = setInterval(() => {
-      current += increment;
+      current += numericValue / steps;
       if (current >= numericValue) {
         setDisplayValue(numericValue);
         clearInterval(timer);
@@ -90,115 +47,73 @@ export function StatsCard({
         setDisplayValue(Math.floor(current));
       }
     }, stepDuration);
-
     return () => clearInterval(timer);
   }, [value, animateValue]);
 
-  // Formatear valor para display
   const getFormattedValue = () => {
-    if (typeof value === 'string' && value.includes('%')) {
-      return `${Math.round(displayValue)}%`;
-    }
+    if (typeof value === 'string' && value.includes('%')) return `${Math.round(displayValue)}%`;
     return typeof value === 'number' ? Math.round(displayValue) : displayValue;
   };
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ scale: 1.03, y: -5 }}
-      transition={{ duration: 0.3 }}
+      whileHover={{ y: -5, scale: 1.02 }}
+      transition={{ type: "spring", stiffness: 300 }}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
       onClick={onClick}
       className={`
-        relative overflow-hidden
-        bg-gradient-to-br ${colors.gradient}
-        ${colors.hover}
-        rounded-2xl shadow-xl ${isHovered ? colors.glow : ''}
-        p-6 text-white
-        transition-all duration-300
-        ${onClick ? 'cursor-pointer' : ''}
-        ${className}
+        relative overflow-hidden rounded-2xl shadow-lg cursor-default
+        bg-gradient-to-br ${theme.from} ${theme.to}
+        p-5 text-white flex items-center gap-4 ${className}
       `}
     >
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute inset-0" style={{
-          backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
-          backgroundSize: '24px 24px'
-        }} />
+      {/* 1. Contenedor de Icono (Izquierda) */}
+      <div className={`
+        flex-shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shadow-inner
+        ${theme.iconBg} backdrop-blur-sm
+      `}>
+        {icon}
       </div>
 
-      {/* Content */}
-      <div className="relative z-10">
-        {/* Icon */}
-        <motion.div
-          animate={isHovered ? { rotate: [0, -10, 10, -10, 0], scale: [1, 1.1, 1] } : {}}
-          transition={{ duration: 0.5 }}
-          className="text-5xl mb-3"
-        >
-          {icon}
-        </motion.div>
-
-        {/* Label */}
-        <p className="text-sm font-medium opacity-90 mb-2">
+      {/* 2. Datos (Derecha) */}
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-bold uppercase tracking-wider opacity-80 mb-0.5">
           {label}
         </p>
-
-        {/* Value */}
-        <div className="flex items-baseline gap-2">
-          <motion.p
-            key={displayValue}
-            initial={{ scale: 1.2, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="text-4xl font-bold"
-          >
+        
+        <div className="flex items-end gap-2">
+          <h3 className="text-3xl font-black leading-none tracking-tight">
             {getFormattedValue()}
-          </motion.p>
-
-          {/* Trend Indicator */}
+          </h3>
+          
+          {/* Trend (Opcional) */}
           {trend && (
-            <motion.span
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-              className={`text-sm font-semibold flex items-center gap-1 ${
-                trend === 'up' 
-                  ? 'text-green-200' 
-                  : trend === 'down' 
-                  ? 'text-red-200' 
-                  : 'text-white/70'
-              }`}
-            >
-              {trend === 'up' && '↑'}
-              {trend === 'down' && '↓'}
-              {trendValue}
-            </motion.span>
+            <span className={`text-xs font-bold mb-1 px-1.5 py-0.5 rounded flex items-center ${trend === 'up' ? 'bg-green-400/30 text-green-50' : 'bg-red-400/30 text-red-50'}`}>
+              {trend === 'up' ? '↑' : '↓'} {trendValue}
+            </span>
           )}
         </div>
 
-        {/* Subtitle */}
         {subtitle && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="text-xs opacity-75 mt-2"
-          >
+          <p className="text-xs font-medium opacity-70 mt-1 truncate">
             {subtitle}
-          </motion.p>
+          </p>
         )}
       </div>
 
-      {/* Shine Effect on Hover */}
+      {/* Decoración de Fondo */}
+      <div className="absolute -right-6 -bottom-6 opacity-10 text-9xl pointer-events-none select-none rotate-12">
+        {icon}
+      </div>
+      
+      {/* Brillo en Hover */}
       {isHovered && (
         <motion.div
           initial={{ x: '-100%' }}
           animate={{ x: '200%' }}
-          transition={{ duration: 0.6 }}
-          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-          style={{ transform: 'skewX(-20deg)' }}
+          transition={{ duration: 0.7 }}
+          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12"
         />
       )}
     </motion.div>
@@ -206,16 +121,16 @@ export function StatsCard({
 }
 
 StatsCard.propTypes = {
-  icon: PropTypes.oneOfType([PropTypes.string, PropTypes.node]).isRequired,
+  icon: PropTypes.node.isRequired,
   label: PropTypes.string.isRequired,
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
   subtitle: PropTypes.string,
-  trend: PropTypes.oneOf(['up', 'down', 'neutral']),
+  color: PropTypes.string,
+  className: PropTypes.string,
+  trend: PropTypes.string,
   trendValue: PropTypes.string,
-  color: PropTypes.oneOf(['blue', 'purple', 'green', 'orange', 'cyan', 'yellow']),
   animateValue: PropTypes.bool,
-  onClick: PropTypes.func,
-  className: PropTypes.string
+  onClick: PropTypes.func
 };
 
 export default StatsCard;

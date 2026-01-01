@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useRef, useMemo } from 'react';
 import { Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Title, Tooltip, Legend } from 'chart.js';
 import PropTypes from 'prop-types';
@@ -7,115 +7,97 @@ import { useLanguage } from '@/context/LanguageContext';
 ChartJS.register(ArcElement, Title, Tooltip, Legend);
 
 export function DistributionChart({ data, isDark = false, id = "chart-distribution" }) {
-  const chartRef = useRef(null);
   const { t } = useLanguage();
 
-  // ... (condiciones de !data igual) ...
+  const total = data?.datasets?.[0]?.data.reduce((a, b) => a + b, 0) || 0;
 
-  const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
+  // ✅ PALETA DE ALTO CONTRASTE
+  const mainTextColor = isDark ? '#FFFFFF' : '#000000'; 
+  const subTextColor = isDark ? '#9CA3AF' : '#374151';
+
+  // Plugin de Texto Central
+  const textCenterPlugin = useMemo(() => ({
+    id: 'textCenter',
+    beforeDraw: (chart) => {
+      const { ctx } = chart;
+      const { top, bottom, left, right, height } = chart.chartArea;
+      const centerX = (left + right) / 2;
+      const centerY = (top + bottom) / 2;
+
+      ctx.save();
+      const fontSizeNumber = height / 8; 
+      const fontSizeLabel = height / 25;
+
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      // 1. Número Total
+      ctx.font = `bold ${fontSizeNumber}px 'Inter', sans-serif`;
+      ctx.fillStyle = mainTextColor; 
+      ctx.fillText(total.toString(), centerX, centerY - (fontSizeNumber * 0.15));
+
+      // 2. Etiqueta TOTAL
+      ctx.font = `bold ${fontSizeLabel}px 'Inter', sans-serif`;
+      ctx.fillStyle = subTextColor; 
+      const labelText = (t('common.total') || 'TOTAL').toUpperCase();
+      ctx.fillText(labelText, centerX, centerY + (fontSizeNumber * 0.55));
+
+      ctx.restore();
+    }
+  }), [total, mainTextColor, subTextColor, t]);
+
+  if (!data) return null;
 
   const options = {
     responsive: true,
-    maintainAspectRatio: true,
-    aspectRatio: 1.5,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
         position: 'right',
         labels: {
-          color: isDark ? '#e5e7eb' : '#374151',
-          font: { size: 12, family: "'Inter', sans-serif" },
+          color: subTextColor,
+          font: { size: 12, weight: '600', family: "'Inter', sans-serif" },
           usePointStyle: true,
-          padding: 15,
-          generateLabels: (chart) => {
-            const chartData = chart.data;
-            if (chartData.labels.length && chartData.datasets.length) {
-              return chartData.labels.map((label, i) => {
-                const value = chartData.datasets[0].data[i];
-                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-                
-                // ✅ USAR T() PARA LAS LEYENDAS INDIVIDUALES
-                let translatedLabel;
-                if (label === 'Correctas' || label === 'Correct') {
-                  translatedLabel = t('analytics.charts.distribution.correct');
-                } else if (label === 'Incorrectas' || label === 'Incorrect') {
-                  translatedLabel = t('analytics.charts.distribution.incorrect');
-                } else {
-                  translatedLabel = label; // Fallback
-                }
-
-                return {
-                  text: `${translatedLabel}: ${percentage}%`,
-                  fillStyle: chartData.datasets[0].backgroundColor[i],
-                  hidden: false,
-                  index: i,
-                  fontColor: isDark ? '#e5e7eb' : '#374151'
-                };
-              });
-            }
-            return [];
-          }
+          padding: 20
         }
       },
       title: {
         display: true,
-        text: `🎯 ${t('analytics.charts.distribution.title')}`, // ✅ Título traducido
-        color: isDark ? '#f9fafb' : '#111827',
-        font: { size: 16, weight: 'bold', family: "'Inter', sans-serif" },
-        padding: { top: 10, bottom: 20 }
+        text: `🎯 ${t('analytics.charts.distribution.title')}`,
+        color: mainTextColor,
+        font: { size: 16, weight: '800', family: "'Inter', sans-serif" },
+        padding: { top: 10, bottom: 20 },
+        align: 'start'
       },
       tooltip: {
-        // ... estilos igual ...
-        callbacks: {
-          label: function(context) {
-            // ✅ También traducir aquí el label del tooltip si es necesario
-            let label = context.label;
-            if (label === 'Correctas' || label === 'Correct') {
-              label = t('analytics.charts.distribution.correct');
-            } else if (label === 'Incorrectas' || label === 'Incorrect') {
-              label = t('analytics.charts.distribution.incorrect');
-            }
-            const value = context.parsed;
-            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-            return [`${label}: ${value} (${percentage}%)`];
-          }
-        }
+        backgroundColor: isDark ? 'rgba(17, 24, 39, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+        titleColor: isDark ? '#F3F4F6' : '#000000',
+        bodyColor: isDark ? '#F3F4F6' : '#000000',
+        borderColor: isDark ? '#374151' : '#E5E7EB',
+        borderWidth: 1
       }
     },
-    cutout: '60%',
-    elements: { arc: { borderWidth: 2, borderColor: isDark ? '#1f2937' : '#ffffff' } }
+    cutout: '75%',
+    elements: { arc: { borderWidth: 0 } }
   };
 
   return (
-    <div id={id} className="w-full h-full p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
-      <Doughnut ref={chartRef} data={data} options={options} />
-      
-      {/* Centro del Doughnut - Información adicional con color corregido */}
-      <div className="relative -mt-48 flex flex-col items-center justify-center pointer-events-none" style={{ height: 150 }}>
-        <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
-          {total}
-        </p>
-        <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>
-          {t('common.total')} {/* ✅ Podrías necesitar una clave para "Total" si aún no la tienes */}
-        </p>
-      </div>
+    <div id={id} className="w-full h-80 p-5 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 transition-colors duration-300">
+      <Doughnut 
+        data={data} 
+        options={options} 
+        plugins={[textCenterPlugin]} 
+        // ✅ Forzar repintado con colores nuevos
+        key={`${isDark ? 'dark' : 'light'}-${total}`} 
+      />
     </div>
   );
 }
-DistributionChart.propTypes = {
-  data: PropTypes.shape({
-    labels: PropTypes.arrayOf(PropTypes.string).isRequired,
-    datasets: PropTypes.arrayOf(
-      PropTypes.shape({
-        label: PropTypes.string,
-        data: PropTypes.arrayOf(PropTypes.number).isRequired,
-        backgroundColor: PropTypes.arrayOf(PropTypes.string).isRequired,
-        borderColor: PropTypes.arrayOf(PropTypes.string),
-        borderWidth: PropTypes.number
-      })
-    ).isRequired
-  }),
-  isDark: PropTypes.bool,
-  id: PropTypes.string
+
+DistributionChart.propTypes = { 
+  data: PropTypes.object, 
+  isDark: PropTypes.bool, 
+  id: PropTypes.string 
 };
 
 export default DistributionChart;

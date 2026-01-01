@@ -3,16 +3,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 import PropTypes from 'prop-types';
 import { useSoundContext } from '@/context/SoundContext';
 import { captureFullDashboard } from '@/utils/chartToImage';
-import { useDarkMode } from '@/hooks/useDarkMode';
-import { useLanguage } from '@/context/LanguageContext'; // ✅ Import hook i18n
+// ✅ CORRECCIÓN: Importamos el ThemeContext en lugar del hook eliminado
+import { useTheme } from '@/context/ThemeContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 /**
  * ExportButton - Botón para exportar dashboard a PDF (Internacionalizado)
  */
 export function ExportButton({ analyticsData, onExportStart, onExportComplete, onExportError, className = '' }) {
   const { playClick, playCorrect } = useSoundContext();
-  const { isDark } = useDarkMode();
-  const { t } = useLanguage(); // ✅ Usar hook i18n
+  
+  // ✅ Usamos el hook correcto del contexto global
+  const { isDark } = useTheme();
+  
+  const { t } = useLanguage();
   
   const [status, setStatus] = useState('idle');
   const [progress, setProgress] = useState(0);
@@ -31,6 +35,7 @@ export function ExportButton({ analyticsData, onExportStart, onExportComplete, o
       await new Promise(resolve => setTimeout(resolve, 200));
 
       setProgress(30);
+      // Pasamos el isDark real del tema
       const captured = await captureFullDashboard(isDark);
 
       if (!captured.success) {
@@ -134,8 +139,7 @@ export function ExportButton({ analyticsData, onExportStart, onExportComplete, o
         }
       });
 
-      // Crear documento PDF (Este podría traducirse también si se pasa el idioma, 
-      // pero por ahora se deja el texto estático o se podría usar t() si se desea)
+      // Crear documento PDF
       const PDFDocument = () => (
         <Document>
           <Page size="A4" style={styles.page}>
@@ -279,7 +283,7 @@ export function ExportButton({ analyticsData, onExportStart, onExportComplete, o
             >
               ⚙️
             </motion.div>
-            <span>{t('analytics.export.generating')}</span> {/* ✅ Traducido */}
+            <span>{t('analytics.export.generating')}</span>
           </>
         );
 
@@ -310,7 +314,7 @@ export function ExportButton({ analyticsData, onExportStart, onExportComplete, o
         return (
           <>
             <span className="text-2xl">📄</span>
-            <span>{t('analytics.export.button')}</span> {/* ✅ Traducido */}
+            <span>{t('analytics.export.button')}</span>
           </>
         );
     }

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { useChartData } from '@/hooks/useChartData';
 import { useLanguage } from '@/context/LanguageContext';
+import { useTheme } from '@/context/ThemeContext';
 import { getSubjects } from '@/services/subjectsService';
 import {
   StatsCard,
@@ -18,12 +19,15 @@ import {
 export default function Analytics() {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
+  
+  // ✅ Obtenemos el tema global
+  const { isDark } = useTheme(); 
+  
   const { data: rawData, loading, error } = useAnalytics();
   
   const [filters, setFilters] = useState({ subjectId: null, dateRange: null });
   const [currentSubjects, setCurrentSubjects] = useState([]);
 
-  // Cargar materias actuales para traducción
   useEffect(() => {
     const loadSubjects = async () => {
       const data = await getSubjects(language);
@@ -32,13 +36,12 @@ export default function Analytics() {
     loadSubjects();
   }, [language]);
 
-  // Filtrar y procesar datos
   const filteredData = useMemo(() => {
     if (!rawData) return null;
 
     let filteredExams = [...rawData.recentExams];
 
-    // Aplicar filtros
+    // Filtros
     if (filters.subjectId) {
       filteredExams = filteredExams.filter(exam => exam.subjectId === filters.subjectId);
     }
@@ -48,7 +51,7 @@ export default function Analytics() {
       filteredExams = filteredExams.filter(exam => exam.timestamp >= startDate && exam.timestamp <= endDate);
     }
 
-    // Traducir nombres
+    // Traducción de nombres de materias
     const translatedRecentExams = filteredExams.map(exam => {
       const subject = currentSubjects.find(s => s.id === exam.subjectId);
       return {
@@ -57,6 +60,7 @@ export default function Analytics() {
       };
     });
 
+    // Manejo de estado vacío filtrado
     if (translatedRecentExams.length === 0) {
       return {
         ...rawData,
@@ -66,13 +70,12 @@ export default function Analytics() {
       };
     }
 
-    // Recalcular métricas
+    // Cálculos de estadísticas
     const totalCorrect = translatedRecentExams.reduce((sum, e) => sum + e.correctAnswers, 0);
     const totalIncorrect = translatedRecentExams.reduce((sum, e) => sum + e.incorrectAnswers, 0);
     const avgScore = translatedRecentExams.reduce((sum, e) => sum + e.score, 0) / translatedRecentExams.length;
-    const passedCount = translatedRecentExams.filter(e => e.passed).length;
-
-    // Datos gráficos
+    
+    // Preparación de datos para gráficas
     const sortedByTime = [...translatedRecentExams].sort((a, b) => a.timestamp - b.timestamp);
     const performanceData = {
       labels: sortedByTime.map(e => formatDateShort(e.timestamp, language)),
@@ -102,9 +105,9 @@ export default function Analytics() {
         totalCorrect,
         totalIncorrect,
         averageScore: avgScore,
-        passRate: (passedCount / translatedRecentExams.length) * 100,
-        totalTimeSpent: translatedRecentExams.reduce((sum, e) => sum + e.timeSpent, 0),
-        averageTimePerExam: translatedRecentExams.reduce((sum, e) => sum + e.timeSpent, 0) / translatedRecentExams.length
+        passRate: 0, 
+        totalTimeSpent: 0,
+        averageTimePerExam: 0
       },
       recentExams: translatedRecentExams.sort((a, b) => b.timestamp - a.timestamp),
       charts: { performance: performanceData, distribution: { correct: totalCorrect, incorrect: totalIncorrect, percentage: avgScore }, bySubject: subjectData }
@@ -142,81 +145,99 @@ export default function Analytics() {
     );
   }
 
-  // Estado sin datos (pero con filtros activos o no)
+  // UI cuando no hay datos tras filtrar
   if (!filteredData || filteredData.exams.totalExams === 0) {
-    const isFiltered = filters.subjectId || filters.dateRange;
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">📊 {t('analytics.title')}</h1>
-          <p className="text-gray-600 dark:text-gray-400">{isFiltered ? t('analytics.noData.titleFiltered') : t('analytics.subtitle')}</p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-screen">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
+              📊 {t('analytics.title')}
+            </h1>
+            <p className="text-gray-500 dark:text-gray-400 font-medium">
+              {t('analytics.subtitle')}
+            </p>
+          </div>
+          <ExportButton analyticsData={filteredData} />
         </div>
-
-        {rawData && rawData.exams.totalExams > 0 && (
-          <FilterBar onFilterChange={handleFilterChange} subjects={subjectsForFilter} className="mb-8" />
-        )}
-
-        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-12 text-center border-2 border-dashed border-gray-200 dark:border-gray-700">
-          <div className="text-7xl mb-4">📉</div>
-          <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-2">
-            {isFiltered ? t('analytics.noData.titleFiltered') : t('analytics.noData.title')}
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
-            {isFiltered ? t('analytics.noData.subtitleFiltered') : t('analytics.noData.subtitle')}
-          </p>
-          {isFiltered ? (
-            <button onClick={() => setFilters({ subjectId: null, dateRange: null })} className="px-6 py-2 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-lg font-semibold">
-              {t('analytics.filters.clear')}
-            </button>
-          ) : (
-            <button onClick={() => navigate('/')} className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold">
-              {t('common.home')}
-            </button>
-          )}
-        </motion.div>
+        <FilterBar onFilterChange={handleFilterChange} subjects={subjectsForFilter} className="mb-10" />
+        
+        <div id="stats-cards-container" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
+            <StatsCard icon="🎯" label={t('analytics.stats.totalExams')} value={0} color="blue" />
+            <StatsCard icon="⭐" label={t('analytics.stats.averageScore')} value="0%" color="purple" />
+            <StatsCard icon="🔥" label={t('gamification.streak.currentTitle')} value={0} color="orange" />
+            <StatsCard icon="🏆" label={t('gamification.level.level')} value={1} color="green" />
+        </div>
+        
+        <div className="text-center py-20 bg-white/50 dark:bg-gray-800/50 rounded-3xl border-2 border-dashed border-gray-300 dark:border-gray-700">
+            <div className="text-6xl mb-4">📭</div>
+            <h3 className="text-xl font-bold text-gray-700 dark:text-gray-300">{t('analytics.noData.titleFiltered')}</h3>
+            <p className="text-gray-500 dark:text-gray-400">{t('analytics.noData.subtitleFiltered')}</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Page Title & Action */}
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-screen">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2 flex items-center gap-3">
+          <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
             📊 {t('analytics.title')}
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-gray-500 dark:text-gray-400 font-medium">
             {t('analytics.subtitle')}
           </p>
         </div>
         <ExportButton analyticsData={filteredData} />
       </div>
 
-      <FilterBar onFilterChange={handleFilterChange} subjects={subjectsForFilter} className="mb-8" />
+      <FilterBar onFilterChange={handleFilterChange} subjects={subjectsForFilter} className="mb-10" />
 
-      {/* Stats Cards */}
-      <div id="stats-cards-container" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      {/* Tarjetas de Estadísticas */}
+      <div id="stats-cards-container" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
         <StatsCard icon="🎯" label={t('analytics.stats.totalExams')} value={filteredData.exams.totalExams} subtitle={`${filteredData.exams.totalCorrect} ${t('gamification.streak.correct')}`} color="blue" />
-        <StatsCard icon="⭐" label={t('analytics.stats.averageScore')} value={`${Math.round(filteredData.exams.averageScore)}%`} subtitle={filteredData.exams.averageScore >= 70 ? t('gamification.streak.messages.daily.great') : t('results.fail')} color="purple" />
+        <StatsCard icon="⭐" label={t('analytics.stats.averageScore')} value={`${Math.round(filteredData.exams.averageScore)}%`} subtitle={filteredData.exams.averageScore >= 70 ? "¡Buen trabajo!" : "Sigue practicando"} color="purple" />
         <StatsCard icon="🔥" label={t('gamification.streak.currentTitle')} value={filteredData.global.streakDaily} subtitle={`${t('gamification.streak.best')}: ${filteredData.global.streakBest}`} color="orange" />
-        <StatsCard icon="🏆" label={t('gamification.level.level')} value={filteredData.global.level} subtitle={`${filteredData.global.currentLevelXP}/${filteredData.global.xpForNextLevel} XP`} color="green" />
+        <StatsCard icon="🏆" label={t('gamification.level.level')} value={filteredData.global.level} subtitle={`${filteredData.global.currentLevelXP} / ${filteredData.global.xpForNextLevel} XP`} color="green" />
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      {/* Gráficas */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="lg:col-span-2">
-          <PerformanceChart data={chartData.performance.data} id="chart-performance" />
+          {/* ✅ Gráfica de Rendimiento conectada */}
+          <PerformanceChart 
+             data={chartData.performance.data} 
+             isDark={isDark} 
+             id="chart-performance" 
+             key={isDark ? 'dark-perf' : 'light-perf'} 
+          />
         </motion.div>
+        
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-          <SubjectChart data={chartData.subject.data} id="chart-subject" />
+          {/* ✅ Gráfica de Materias con el FIX de los dos puntos aplicado */}
+          <SubjectChart 
+             data={chartData.subject.data} 
+             isDark={isDark} 
+             id="chart-subject" 
+             key={isDark ? 'dark-subj' : 'light-subj'} 
+          />
         </motion.div>
+        
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-          <DistributionChart data={chartData.distribution.data} id="chart-distribution" />
+          {/* ✅ Gráfica de Distribución conectada */}
+          <DistributionChart 
+             data={chartData.distribution.data} 
+             isDark={isDark} 
+             id="chart-distribution" 
+             key={isDark ? 'dark-dist' : 'light-dist'} 
+          />
         </motion.div>
       </div>
 
-      <HistoryTable recentExams={filteredData.recentExams} />
+      <div className="mb-12">
+          <HistoryTable recentExams={filteredData.recentExams} />
+      </div>
     </div>
   );
 }

@@ -1,183 +1,97 @@
-import { useEffect, useRef, useMemo } from 'react';
+import { useRef, useMemo } from 'react';
 import { Line } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-} from 'chart.js';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler } from 'chart.js';
 import PropTypes from 'prop-types';
-import { useLanguage } from '@/context/LanguageContext'; // ✅ Import hook i18n
+import { useLanguage } from '@/context/LanguageContext';
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
-/**
- * PerformanceChart - Gráfico de rendimiento a lo largo del tiempo (Internacionalizado)
- */
 export function PerformanceChart({ data, isDark = false, id = "chart-performance" }) {
   const chartRef = useRef(null);
-  const { t } = useLanguage(); // ✅ Usar hook para traducciones
+  const { t } = useLanguage();
 
-  // ✅ Preparar datos traducidos internamente
-  // Esto asegura que la leyenda se actualice al cambiar de idioma
   const translatedData = useMemo(() => {
     if (!data || !data.datasets) return null;
     return {
       ...data,
       datasets: data.datasets.map(dataset => ({
         ...dataset,
-        // Usa la clave de traducción para la leyenda del dataset
-        label: t('analytics.charts.performance.scoreLegend')
+        label: t('analytics.charts.performance.scoreLegend'),
+        // Dark: Azul Neón | Light: Indigo Oscuro (#312e81)
+        borderColor: isDark ? '#60A5FA' : '#312e81',
+        backgroundColor: isDark ? 'rgba(96, 165, 250, 0.1)' : 'rgba(49, 46, 129, 0.1)',
+        // Puntos: Dark -> Azul | Light -> Blanco con borde oscuro
+        pointBackgroundColor: isDark ? '#1E3A8A' : '#ffffff',
+        pointBorderColor: isDark ? '#60A5FA' : '#312e81',
+        pointBorderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 6
       }))
     };
-  }, [data, t]);
+  }, [data, t, isDark]);
 
-  if (!translatedData || !translatedData.labels || !translatedData.datasets) {
-    return (
-      <div id={id} className="flex items-center justify-center h-64 bg-gray-100 dark:bg-gray-800 rounded-lg">
-        <p className="text-gray-500 dark:text-gray-400">{t('analytics.noData.chart')}</p>
-      </div>
-    );
-  }
+  if (!translatedData) return null;
+
+  // ✅ NEGRO PURO para modo claro
+  const mainTextColor = isDark ? '#F3F4F6' : '#000000'; 
+  const subTextColor = isDark ? '#9CA3AF' : '#111827'; // Gray-900 casi negro
+  const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.15)';
 
   const options = {
     responsive: true,
-    maintainAspectRatio: true,
-    aspectRatio: 2,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: 'top',
-        labels: {
-          color: isDark ? '#e5e7eb' : '#374151',
-          font: {
-            size: 12,
-            family: "'Inter', sans-serif"
-          },
-          usePointStyle: true,
-          padding: 15
+        align: 'end',
+        labels: { 
+          color: subTextColor,
+          usePointStyle: true, 
+          boxWidth: 8, 
+          font: { family: "'Inter', sans-serif", weight: '600' } 
         }
       },
       title: {
         display: true,
-        text: `📈 ${t('analytics.charts.performance.title')}`, // ✅ Título traducido
-        color: isDark ? '#f9fafb' : '#111827',
-        font: {
-          size: 16,
-          weight: 'bold',
-          family: "'Inter', sans-serif"
-        },
-        padding: {
-          top: 10,
-          bottom: 20
-        }
+        text: t('analytics.charts.performance.title'),
+        align: 'start',
+        color: mainTextColor,
+        font: { size: 16, weight: '800', family: "'Inter', sans-serif" },
+        padding: { bottom: 20 }
       },
       tooltip: {
-        backgroundColor: isDark ? '#1f2937' : '#ffffff',
-        titleColor: isDark ? '#f9fafb' : '#111827',
-        bodyColor: isDark ? '#e5e7eb' : '#374151',
-        borderColor: isDark ? '#374151' : '#e5e7eb',
-        borderWidth: 1,
-        padding: 12,
-        displayColors: true,
-        callbacks: {
-          label: function(context) {
-            let label = context.dataset.label || '';
-            if (label) {
-              label += ': ';
-            }
-            if (context.parsed.y !== null) {
-              label += context.parsed.y.toFixed(1) + '%';
-            }
-            return label;
-          }
-        }
+        backgroundColor: isDark ? 'rgba(17, 24, 39, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+        titleColor: isDark ? '#F3F4F6' : '#000000',
+        bodyColor: isDark ? '#F3F4F6' : '#000000',
+        borderColor: isDark ? '#374151' : '#E5E7EB',
+        borderWidth: 1
       }
     },
     scales: {
       y: {
         beginAtZero: true,
         max: 100,
-        ticks: {
-          callback: function(value) {
-            return value + '%';
-          },
-          color: isDark ? '#9ca3af' : '#6b7280',
-          font: {
-            size: 11
-          }
-        },
-        grid: {
-          color: isDark ? '#374151' : '#e5e7eb',
-          drawBorder: false
-        }
+        grid: { color: gridColor },
+        ticks: { color: subTextColor, font: { weight: '600' }, callback: v => v + '%' }
       },
       x: {
-        ticks: {
-          color: isDark ? '#9ca3af' : '#6b7280',
-          font: {
-            size: 11
-          },
-          maxRotation: 45,
-          minRotation: 0
-        },
-        grid: {
-          display: false
-        }
+        grid: { display: false },
+        ticks: { color: subTextColor, font: { size: 11, weight: '600' }, maxRotation: 45 }
       }
     },
-    interaction: {
-      mode: 'index',
-      intersect: false
-    },
-    elements: {
-      line: {
-        tension: 0.4,
-        borderWidth: 3
-      },
-      point: {
-        radius: 4,
-        hoverRadius: 6,
-        borderWidth: 2
-      }
-    }
+    elements: { line: { tension: 0.4, borderWidth: 3 } }
   };
 
   return (
-    <div id={id} className="w-full h-full p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
-      <Line ref={chartRef} data={translatedData} options={options} />
+    <div id={id} className="w-full h-80 p-5 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 transition-colors duration-300">
+      <Line 
+        ref={chartRef} 
+        data={translatedData} 
+        options={options} 
+        // Forzamos repintado al cambiar tema
+        key={isDark ? 'dark-perf' : 'light-perf'} 
+      />
     </div>
   );
 }
-
-PerformanceChart.propTypes = {
-  data: PropTypes.shape({
-    labels: PropTypes.arrayOf(PropTypes.string).isRequired,
-    datasets: PropTypes.arrayOf(
-      PropTypes.shape({
-        label: PropTypes.string,
-        data: PropTypes.arrayOf(PropTypes.number).isRequired,
-        borderColor: PropTypes.string,
-        backgroundColor: PropTypes.string,
-        fill: PropTypes.bool
-      })
-    ).isRequired
-  }),
-  isDark: PropTypes.bool,
-  id: PropTypes.string
-};
-
+PerformanceChart.propTypes = { data: PropTypes.object, isDark: PropTypes.bool, id: PropTypes.string };
 export default PerformanceChart;

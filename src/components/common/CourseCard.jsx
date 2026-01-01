@@ -36,7 +36,7 @@ export default function CourseCard({ subject, stats = null }) {
       {/* ✨ EFECTO GLOSSY / LACA */}
       {/* Una banda semitransparente que cruza la tarjeta en hover */}
 <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden">
-   <div className="absolute top-0 -left-[150%] w-[80%] h-full bg-gradient-to-r from-transparent via-white/25 to-transparent transform -skew-x-25 transition-all duration-[2500ms] ease-in-out group-hover:left-[150%]" />
+   <div className="absolute top-0 -left-[150%] w-[80%] h-full bg-gradient-to-r from-transparent via-white/25 to-transparent transform -skew-x-25 transition-all duration-1000 ease-in-out group-hover:left-[150%]" />
 </div>
 
       {/* Patrón de fondo sutil para textura (opcional) */}

@@ -3,7 +3,9 @@ import { AnimatePresence } from 'framer-motion';
 import { PageTransition } from './components/common/PageTransition';
 import { SoundProvider } from './context/SoundContext';
 import { LanguageProvider } from './context/LanguageContext';
-import { useEffect } from 'react'; // ✅ 1. Importar useEffect
+// ✅ 1. IMPORTAR EL PROVEEDOR DEL TEMA (FALTABA ESTO)
+import { ThemeProvider } from '@/context/ThemeContext';
+import { useEffect } from 'react';
 
 // Layouts
 import MainLayout from './components/layout/MainLayout';
@@ -18,18 +20,16 @@ import Analytics from './pages/Analytics';
 import CourseExplorer from './pages/CourseExplorer';
 import CourseDetails from './pages/CourseDetails';
 
-// ✅ 2. Componente de Scroll
-// Este componente arreglará el Problema 2 (scroll descentrado)
+// Componente de Scroll
 function ScrollToTop() {
   const { pathname } = useLocation();
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [pathname]); // Se ejecuta CADA VEZ que la ruta cambia
+  }, [pathname]);
 
   return null;
 }
-
 
 // Wrapper interno para rutas con animaciones específicas
 function AnimatedRoutes() {
@@ -39,7 +39,7 @@ function AnimatedRoutes() {
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         
-        {/* ✅ RUTAS PRINCIPALES (Usan MainLayout - Zonas Seguras) */}
+        {/* RUTAS PRINCIPALES */}
         <Route element={<MainLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/analytics" element={<Analytics />} />
@@ -47,7 +47,7 @@ function AnimatedRoutes() {
           <Route path="/course/:subjectId" element={<CourseDetails />} />
         </Route>
         
-        {/* 🚀 RUTAS INMERSIVAS (Headers personalizados, sin distracción) */}
+        {/* RUTAS INMERSIVAS */}
         <Route path="/exam/:subjectId" element={
           <PageTransition type="slideLeft">
             <ExamMode />
@@ -81,10 +81,14 @@ function App() {
   return (
     <LanguageProvider>
       <SoundProvider>
-        <Router>
-          <ScrollToTop /> {/* ✅ 3. Añadir el componente aquí */}
-          <AnimatedRoutes />
-        </Router>
+        {/* ✅ 2. ENVOLVER LA APP CON THEMEPROVIDER (FALTABA ESTO) */}
+        {/* Sin esto, 'isDark' no funciona y las gráficas no cambian de color */}
+        <ThemeProvider>
+          <Router>
+            <ScrollToTop />
+            <AnimatedRoutes />
+          </Router>
+        </ThemeProvider>
       </SoundProvider>
     </LanguageProvider>
   );

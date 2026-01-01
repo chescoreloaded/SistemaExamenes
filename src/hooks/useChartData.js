@@ -1,12 +1,14 @@
 import { useMemo } from 'react';
-import { useDarkMode } from './useDarkMode';
+// ✅ CORRECCIÓN: Importamos el ThemeContext en lugar del archivo eliminado
+import { useTheme } from '@/context/ThemeContext';
 
 /**
  * Hook para preparar datos y configuraciones para Chart.js
  * Incluye soporte completo para dark mode
  */
 export function useChartData(analyticsData) {
-  const { isDark } = useDarkMode();
+  // ✅ Usamos el hook correcto
+  const { isDark } = useTheme();
 
   // Colores del tema
   const colors = useMemo(() => ({

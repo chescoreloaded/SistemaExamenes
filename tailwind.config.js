@@ -4,10 +4,9 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
-  // ✅ --- CORRECCIÓN ---
-  // Se ha cambiado de ['class', "class"] a solo ["class"]
-  darkMode: ["class"],
-  // ✅ --- FIN DE CORRECCIÓN ---
+  // ✅ CORRECCIÓN FINAL: Sin corchetes [ ], solo comillas simples o dobles
+  darkMode: 'class', 
+  
   theme: {
   	extend: {
   		colors: {

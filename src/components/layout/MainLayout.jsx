@@ -5,6 +5,8 @@ import { Navbar } from './Navbar';
 import { HeaderControls } from './HeaderControls';
 import { Logo } from '../common/Logo';
 import { PageTransition } from '../common/PageTransition';
+// ✅ NUEVO: Importamos el menú de engranaje
+import MobileSettingsMenu from './MobileSettingsMenu';
 
 export default function MainLayout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -15,12 +17,10 @@ export default function MainLayout() {
   }, [location.pathname]);
 
   return (
-    // ✅ ARREGLO DE OVERFLOW (Problema 1 y 7)
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300 overflow-x-hidden">
-      {/* ✅ HEADER GLOBAL */}\
+      {/* HEADER GLOBAL */}
       <header className="sticky top-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200/50 dark:border-gray-800/50 supports-[backdrop-filter]:bg-white/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* ✅ ARREGLO DE LAYOUT (Problema 1 y 8) */}
           <div className="flex items-center justify-between h-16 md:h-20">
             
             {/* Logo (Izquierda) */}
@@ -33,22 +33,23 @@ export default function MainLayout() {
               <Navbar />
             </div>
             
-            {/* Controles y Hamburguesa (Derecha) */}
+            {/* Controles y Menú (Derecha) */}
             <div className="flex items-center gap-2 md:gap-4">
-              {/* Controles Desktop */}
+              
+              {/* ✅ DESKTOP: Mostramos los controles completos (Sonido, Tema, Idioma) */}
               <div className="hidden md:flex items-center gap-4">
                 <HeaderControls />
               </div>
 
-              {/* Controles Móvil (más pequeños) */}
+              {/* ✅ MÓVIL: Mostramos SOLO el engranaje (Ajustes) */}
               <div className="flex md:hidden">
-                <HeaderControls className="scale-90" />
+                <MobileSettingsMenu />
               </div>
 
-              {/* Botón Hamburguesa (Solo Móvil) */}
+              {/* Botón Hamburguesa (Navegación Móvil) */}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="flex md:hidden p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ml-1" // `ml-1` da espacio
+                className="flex md:hidden p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ml-1"
                 aria-label="Toggle menu"
               >
                 <div className="w-6 h-6 flex flex-col justify-center gap-1.5">
@@ -71,7 +72,7 @@ export default function MainLayout() {
           </div>
         </div>
 
-        {/* ✅ MOBILE MENU (Desplegable) */}
+        {/* MOBILE MENU (Navegación Desplegable) */}
         <AnimatePresence>
           {isMobileMenuOpen && (
             <motion.div
@@ -89,7 +90,7 @@ export default function MainLayout() {
         </AnimatePresence>
       </header>
 
-      {/* ✅ CONTENIDO PRINCIPAL */}
+      {/* CONTENIDO PRINCIPAL */}
       <main className="relative z-0">
         <PageTransition type="fade" key={location.pathname}>
           <Outlet />

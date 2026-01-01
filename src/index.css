@@ -29,6 +29,11 @@
   transition: var(--transition-bg), var(--transition-color), var(--transition-border);
 }
 
+/* Asegura que la transición de color sea suave en toda la app */
+html, body {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',

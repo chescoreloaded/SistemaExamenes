@@ -53,7 +53,6 @@ export const TRANSLATIONS = {
         showing: 'Mostrando {start}-{end} de {total} resultados'
       }
     },
-    // ✅ SECCIÓN DE AJUSTES
     settings: {
       title: 'Ajustes',
       sound: 'Sonido',
@@ -174,7 +173,6 @@ export const TRANSLATIONS = {
         title: 'Atajos',
         nav: 'Navegar',
         select: 'Seleccionar',
-        // ✅ CORRECCIÓN CONSISTENCIA: 'Mark' -> 'Marcar'
         mark: 'Marcar', 
         next: 'Siguiente',
         confirm: 'Confirmar'
@@ -317,13 +315,19 @@ export const TRANSLATIONS = {
       filters: {
         clear: 'Limpiar',
         allTime: 'Todo el tiempo',
+        allSubjects: 'Todas las materias', // ✅ CORREGIDO: Faltaba esta llave
         lastWeek: '7 días',
         lastMonth: '30 días'
       },
       history: {
         title: 'Historial',
         columns: { date: 'Fecha', subject: 'Materia', score: 'Nota', status: 'Estado' },
-        status: { passed: 'Aprobado', failed: 'Reprobado' }
+        status: { passed: 'Aprobado', failed: 'Reprobado' },
+        footer: { // ✅ CORREGIDO: Faltaba toda esta sección
+            totalExams: 'exámenes',
+            average: 'Media',
+            passed: 'Aprobados'
+        }
       },
       export: {
         button: 'Exportar PDF',
@@ -649,13 +653,19 @@ export const TRANSLATIONS = {
       filters: {
         clear: 'Clear',
         allTime: 'All time',
+        allSubjects: 'All Subjects', // ✅ CORREGIDO
         lastWeek: 'Last 7 days',
         lastMonth: 'Last 30 days'
       },
       history: {
         title: 'Historial',
         columns: { date: 'Date', subject: 'Subject', score: 'Score', status: 'Status' },
-        status: { passed: 'Passed', failed: 'Failed' }
+        status: { passed: 'Passed', failed: 'Failed' },
+        footer: { // ✅ CORREGIDO
+            totalExams: 'exams',
+            average: 'Average',
+            passed: 'Passed'
+        }
       },
       export: {
         button: 'Export PDF',
