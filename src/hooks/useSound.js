@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react';
-// ✅ FIX: Renombrar la importación para evitar conflicto
-import useSoundPackage from 'use-sound'; 
+import { useState, useEffect, useCallback, useRef } from 'react';
+import useSoundPackage from 'use-sound'; // Asegúrate de tener instalado 'use-sound'
 
-// Importa tus 11 archivos de sonido desde la carpeta 'public'
+// Importa tus archivos de sonido
 import clickSfx from '/sounds/1_playClick.mp3';
 import transitionSfx from '/sounds/2_playPageTransition.mp3';
 import testSfx from '/sounds/3_playTest.mp3';
@@ -13,18 +12,16 @@ import levelUpSfx from '/sounds/7_playLevelUp.mp3';
 import streakSfx from '/sounds/8_playStreak.mp3';
 import examSuccessSfx from '/sounds/9_playExamComplete.mp3';
 import examFailSfx from '/sounds/10_playFailedExam.mp3';
-import flipSfx from '/sounds/11_playFlashcardFlip.mp3'; // Asumiendo este nombre
+import flipSfx from '/sounds/11_playFlashcardFlip.mp3';
 
-/**
- * Hook de sonido global que carga todos los archivos de audio de la app
- * y los provee a través del SoundContext.
- */
-export function useSound() { // <-- Este nombre está bien
-  // Estado de mute y volumen
+export function useSound() {
   const [volume, setVolume] = useState(0.5);
   const [isMuted, setIsMuted] = useState(false);
+  const [audioUnlocked, setAudioUnlocked] = useState(false); // ✅ Fix para Autoplay Policy
 
-  // Cargar estado desde localStorage
+  // Ref para evitar que el mismo sonido se dispare múltiples veces en ms (Debounce)
+  const lastPlayedRef = useRef({ id: null, time: 0 });
+
   useEffect(() => {
     const savedMuted = localStorage.getItem('soundMuted');
     if (savedMuted !== null) setIsMuted(JSON.parse(savedMuted));
@@ -33,13 +30,26 @@ export function useSound() { // <-- Este nombre está bien
     if (savedVolume !== null) setVolume(parseFloat(savedVolume));
   }, []);
 
-  // Opciones comunes para todos los sonidos
+  // ✅ Función crítica: Desbloquea el AudioContext en la primera interacción
+  const unlockAudio = useCallback(() => {
+    if (!audioUnlocked) {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (AudioContext) {
+        const ctx = new AudioContext();
+        ctx.resume().then(() => {
+          setAudioUnlocked(true);
+          ctx.close(); // Solo lo queremos para despertar al navegador
+        }).catch(e => console.error("Audio unlock failed", e));
+      }
+    }
+  }, [audioUnlocked]);
+
   const soundOptions = {
     volume,
-    interrupt: true, // Permite que un sonido corte a otro
+    interrupt: true,
+    soundEnabled: !isMuted, // use-sound manejará esto, pero controlamos la llamada abajo
   };
 
-  // ✅ FIX: Usar el hook renombrado 'useSoundPackage'
   const [playClick] = useSoundPackage(clickSfx, soundOptions);
   const [playPageTransition] = useSoundPackage(transitionSfx, soundOptions);
   const [playTest] = useSoundPackage(testSfx, soundOptions);
@@ -52,47 +62,57 @@ export function useSound() { // <-- Este nombre está bien
   const [playExamCompleteFail] = useSoundPackage(examFailSfx, soundOptions);
   const [playFlashcardFlip] = useSoundPackage(flipSfx, soundOptions);
 
-  // --- Controles de Mute y Volumen ---
   const toggleMute = () => {
     const newMuted = !isMuted;
     setIsMuted(newMuted);
     localStorage.setItem('soundMuted', JSON.stringify(newMuted));
+    // Al intentar activar sonido, aprovechamos para desbloquear
+    if (!newMuted) unlockAudio();
   };
 
   const changeVolume = (newVolume) => {
     setVolume(newVolume);
     localStorage.setItem('soundVolume', newVolume.toString());
+    unlockAudio(); // Ajustar volumen cuenta como interacción
   };
   
-  // --- Wrapper para Mute ---
-  const playWrapper = (playFn) => {
-    // 'playFn' puede ser null si el audio aún no se ha cargado
-    if (!isMuted && playFn) { 
+  // ✅ Wrapper Inteligente con Anti-Rebote y Unlock
+  const playWrapper = (playFn, soundId) => {
+    if (isMuted) return;
+
+    // Intentar desbloquear siempre que se pide un sonido (por si acaso)
+    unlockAudio();
+
+    const now = Date.now();
+    // Si el mismo sonido (ID) se pide en menos de 50ms, lo ignoramos (fix doble renders)
+    if (lastPlayedRef.current.id === soundId && (now - lastPlayedRef.current.time < 50)) {
+      return;
+    }
+
+    if (playFn) {
       playFn();
+      lastPlayedRef.current = { id: soundId, time: now };
     }
   };
 
-  // Exportar todo lo que la app necesita
   return {
     isMuted,
     volume,
     toggleMute,
     changeVolume,
+    unlockAudio, // Exportamos por si quieres poner un botón "Activar Audio" explícito
     
-    // Exportar las funciones envueltas
-    playClick: () => playWrapper(playClick),
-    playPageTransition: () => playWrapper(playPageTransition),
-    playTest: () => playWrapper(playTest),
-    playCorrect: () => playWrapper(playCorrect),
-    playIncorrect: () => playWrapper(playIncorrect),
-    playAchievement: () => playWrapper(playAchievement),
-    playLevelUp: () => playWrapper(playLevelUp),
-    playStreak: () => playWrapper(playStreak),
-    playExamCompleteSuccess: () => playWrapper(playExamCompleteSuccess),
-    playExamCompleteFail: () => playWrapper(playExamCompleteFail),
-    playFlashcardFlip: () => playWrapper(playFlashcardFlip),
+    // IDs únicos para el debounce
+    playClick: () => playWrapper(playClick, 'click'),
+    playPageTransition: () => playWrapper(playPageTransition, 'transition'),
+    playTest: () => playWrapper(playTest, 'test'),
+    playCorrect: () => playWrapper(playCorrect, 'correct'),
+    playIncorrect: () => playWrapper(playIncorrect, 'incorrect'),
+    playAchievement: () => playWrapper(playAchievement, 'achievement'),
+    playLevelUp: () => playWrapper(playLevelUp, 'levelup'),
+    playStreak: () => playWrapper(playStreak, 'streak'),
+    playExamCompleteSuccess: () => playWrapper(playExamCompleteSuccess, 'exam_success'),
+    playExamCompleteFail: () => playWrapper(playExamCompleteFail, 'exam_fail'),
+    playFlashcardFlip: () => playWrapper(playFlashcardFlip, 'flip'),
   };
 }
-
-// El export default no es necesario si usas export nombrado
-// export default useSound;

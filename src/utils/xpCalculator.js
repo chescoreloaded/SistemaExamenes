@@ -6,7 +6,7 @@
 // XP base por acción
 export const XP_VALUES = {
   CORRECT_ANSWER: 10,
-  WRONG_ANSWER: 2, // XP de consolación por intentarlo
+  WRONG_ANSWER: 0, // ✅ CORREGIDO: 0 Puntos por fallar
   COMPLETE_EXAM: 50,
   COMPLETE_STUDY_SESSION: 30,
   PERFECT_EXAM: 100, // Bonus por 100%
@@ -17,7 +17,12 @@ export const XP_VALUES = {
 export const DIFFICULTY_MULTIPLIERS = {
   basico: 1.0,
   intermedio: 1.5,
-  avanzado: 2.0
+  avanzado: 2.0,
+  // Mapeos de seguridad por si vienen en inglés o mayúsculas
+  basic: 1.0,
+  intermediate: 1.5,
+  advanced: 2.0,
+  beginner: 1.0
 };
 
 // Multiplicadores por racha
@@ -33,19 +38,34 @@ export const STREAK_MULTIPLIERS = {
  * Calcular XP por respuesta correcta
  */
 export function calculateAnswerXP(isCorrect, difficulty = 'basico', currentStreak = 0) {
-  const baseXP = isCorrect ? XP_VALUES.CORRECT_ANSWER : XP_VALUES.WRONG_ANSWER;
+  // ✅ CORRECCIÓN CRÍTICA: Guard Clause
+  // Si falló, retornamos 0 inmediatamente. No hay premios de consolación que inflen el nivel.
+  if (!isCorrect) {
+    return {
+      baseXP: 0,
+      difficultyMultiplier: 1,
+      streakMultiplier: 1,
+      totalXP: 0,
+      bonusFromDifficulty: 0,
+      bonusFromStreak: 0
+    };
+  }
+
+  // Si pasa aquí, es correcta. Calculamos XP.
+  const baseXP = XP_VALUES.CORRECT_ANSWER;
+  
+  // Normalizar dificultad a minúsculas para evitar errores de key
+  const normalizedDifficulty = difficulty?.toLowerCase() || 'basico';
   
   // Aplicar multiplicador de dificultad
-  const difficultyMultiplier = DIFFICULTY_MULTIPLIERS[difficulty] || 1.0;
+  const difficultyMultiplier = DIFFICULTY_MULTIPLIERS[normalizedDifficulty] || 1.0;
   
   // Aplicar multiplicador de racha (solo para correctas)
   let streakMultiplier = 1.0;
-  if (isCorrect) {
-    if (currentStreak >= 20) streakMultiplier = STREAK_MULTIPLIERS[20];
-    else if (currentStreak >= 10) streakMultiplier = STREAK_MULTIPLIERS[10];
-    else if (currentStreak >= 5) streakMultiplier = STREAK_MULTIPLIERS[5];
-    else if (currentStreak >= 3) streakMultiplier = STREAK_MULTIPLIERS[3];
-  }
+  if (currentStreak >= 20) streakMultiplier = STREAK_MULTIPLIERS[20];
+  else if (currentStreak >= 10) streakMultiplier = STREAK_MULTIPLIERS[10];
+  else if (currentStreak >= 5) streakMultiplier = STREAK_MULTIPLIERS[5];
+  else if (currentStreak >= 3) streakMultiplier = STREAK_MULTIPLIERS[3];
   
   const totalXP = Math.round(baseXP * difficultyMultiplier * streakMultiplier);
   
@@ -66,7 +86,6 @@ export function calculateExamCompletionXP(results) {
   const { 
     score, 
     totalQuestions, 
-    correctCount,
     timeSpent,
     mode 
   } = results;
@@ -89,7 +108,7 @@ export function calculateExamCompletionXP(results) {
   // Bonus por velocidad (solo si score >= 70%)
   if (score >= 70 && timeSpent) {
     const minutesSpent = Math.floor(timeSpent / 60);
-    const questionsPerMinute = totalQuestions / minutesSpent;
+    const questionsPerMinute = minutesSpent > 0 ? totalQuestions / minutesSpent : 0;
     
     if (questionsPerMinute >= 2) {
       totalXP += 30; // Muy rápido
@@ -131,7 +150,7 @@ export function calculateStudySessionXP(stats) {
   totalXP += cardsBonus;
   
   // Bonus por completar todas las tarjetas
-  if (studiedCards === totalCards) {
+  if (studiedCards === totalCards && totalCards > 0) {
     totalXP += 50; // Completaste todas!
   }
   
@@ -147,7 +166,7 @@ export function calculateStudySessionXP(stats) {
     breakdown: {
       base: XP_VALUES.COMPLETE_STUDY_SESSION,
       cardsBonus,
-      completionBonus: studiedCards === totalCards ? 50 : 0,
+      completionBonus: (studiedCards === totalCards && totalCards > 0) ? 50 : 0,
       timeBonus: timeSpent ? Math.min(Math.floor(timeSpent / 60), 30) * 2 : 0
     }
   };
@@ -161,6 +180,9 @@ export function calculateLevel(totalXP) {
   let level = 1;
   let xpNeeded = 0;
   let currentLevelXP = totalXP;
+
+  // Evitar loop infinito si totalXP es negativo o inválido
+  if (!totalXP || totalXP < 0) totalXP = 0;
 
   while (currentLevelXP >= level * 100) {
     currentLevelXP -= level * 100;
@@ -197,7 +219,7 @@ export function getLevelTitle(level) {
  * Formatear XP para display (con separadores de miles)
  */
 export function formatXP(xp) {
-  return xp.toLocaleString('es-ES');
+  return xp ? xp.toLocaleString('es-ES') : '0';
 }
 
 /**

@@ -35,7 +35,8 @@ export const TRANSLATIONS = {
         basic: 'Básico',
         intermediate: 'Intermedio',
         advanced: 'Avanzado',
-        basico: 'Básico',
+        basic: 'Básico',
+        beginner: 'Principiante',
         intermedio: 'Intermedio',
         avanzado: 'Avanzado'
       },
@@ -325,7 +326,7 @@ export const TRANSLATIONS = {
         status: { passed: 'Aprobado', failed: 'Reprobado' },
         footer: { // ✅ CORREGIDO: Faltaba toda esta sección
             totalExams: 'exámenes',
-            average: 'Media',
+            average: 'Promedio',
             passed: 'Aprobados'
         }
       },
@@ -340,6 +341,12 @@ export const TRANSLATIONS = {
       shortcuts: { nav: 'Navegar', answer: 'Responder', exit: 'Salir' }
     }
   },
+
+/********************************************************************************************************************************************** */
+/********************************************************************************************************************************************** */
+/********************************************************************************************************************************************** */
+/********************************************************************************************************************************************** */
+
   en: {
     app: {
       title: 'Exam System',
@@ -374,6 +381,7 @@ export const TRANSLATIONS = {
       close: 'Close',
       difficulty: {
         basic: 'Basic',
+        beginner: 'Beginner',
         intermediate: 'Intermediate',
         advanced: 'Advanced'
       },
