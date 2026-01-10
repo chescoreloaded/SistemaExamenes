@@ -22,6 +22,7 @@ export const TRANSLATIONS = {
       next: 'Siguiente',
       finish: 'Finalizar',
       total: 'Total',
+      question: 'Pregunta', // ✅ NUEVO
       hours: 'h',
       categories: 'categorías',
       minutes: 'min',
@@ -35,7 +36,8 @@ export const TRANSLATIONS = {
         basic: 'Básico',
         intermediate: 'Intermedio',
         advanced: 'Avanzado',
-        basic: 'Básico',
+        // Alias para compatibilidad
+        basico: 'Básico',
         beginner: 'Principiante',
         intermedio: 'Intermedio',
         avanzado: 'Avanzado'
@@ -209,6 +211,7 @@ export const TRANSLATIONS = {
         reset: 'Reiniciar',
         mark: 'Marcar',
         flip: 'Girar',
+        tapToFlip: 'Tap para girar', // ✅ NUEVO
         progress: 'estudiadas',
         tip: 'Espacio/Enter para girar, ← → navegar',
         cardCurrent: 'Tarjeta',
@@ -316,7 +319,7 @@ export const TRANSLATIONS = {
       filters: {
         clear: 'Limpiar',
         allTime: 'Todo el tiempo',
-        allSubjects: 'Todas las materias', // ✅ CORREGIDO: Faltaba esta llave
+        allSubjects: 'Todas las materias',
         lastWeek: '7 días',
         lastMonth: '30 días'
       },
@@ -324,7 +327,7 @@ export const TRANSLATIONS = {
         title: 'Historial',
         columns: { date: 'Fecha', subject: 'Materia', score: 'Nota', status: 'Estado' },
         status: { passed: 'Aprobado', failed: 'Reprobado' },
-        footer: { // ✅ CORREGIDO: Faltaba toda esta sección
+        footer: {
             totalExams: 'exámenes',
             average: 'Promedio',
             passed: 'Aprobados'
@@ -342,11 +345,7 @@ export const TRANSLATIONS = {
     }
   },
 
-/********************************************************************************************************************************************** */
-/********************************************************************************************************************************************** */
-/********************************************************************************************************************************************** */
-/********************************************************************************************************************************************** */
-
+  // ================= ENGLISH =================
   en: {
     app: {
       title: 'Exam System',
@@ -370,6 +369,7 @@ export const TRANSLATIONS = {
       next: 'Next',
       finish: 'Finish',
       total: 'Total',
+      question: 'Question', // ✅ NUEVO
       hours: 'h',
       categories: 'categories',
       minutes: 'min',
@@ -554,6 +554,7 @@ export const TRANSLATIONS = {
         reset: 'Reset',
         mark: 'Mark',
         flip: 'Flip',
+        tapToFlip: 'Tap to flip', // ✅ NUEVO
         progress: 'studied',
         tip: 'Space/Enter to flip, ← → navigate',
         cardCurrent: 'Current Card',
@@ -661,7 +662,7 @@ export const TRANSLATIONS = {
       filters: {
         clear: 'Clear',
         allTime: 'All time',
-        allSubjects: 'All Subjects', // ✅ CORREGIDO
+        allSubjects: 'All Subjects',
         lastWeek: 'Last 7 days',
         lastMonth: 'Last 30 days'
       },
@@ -669,7 +670,7 @@ export const TRANSLATIONS = {
         title: 'Historial',
         columns: { date: 'Date', subject: 'Subject', score: 'Score', status: 'Status' },
         status: { passed: 'Passed', failed: 'Failed' },
-        footer: { // ✅ CORREGIDO
+        footer: {
             totalExams: 'exams',
             average: 'Average',
             passed: 'Passed'

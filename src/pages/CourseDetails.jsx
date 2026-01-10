@@ -23,10 +23,9 @@ export default function CourseDetails() {
     totalXpEarned: 0
   });
 
-  // ✅ ARREGLO DE SCROLL (Problema 2)
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []); // Se ejecuta solo una vez al cargar el componente
+  }, []);
 
   useEffect(() => {
     loadSubjectDetails();
@@ -37,10 +36,7 @@ export default function CourseDetails() {
     try {
       setLoading(true);
       const data = await getSubject(subjectId, language);
-      if (!data) {
-        navigate('/');
-        return;
-      }
+      if (!data) { navigate('/'); return; }
       setSubject(data);
     } catch (error) {
       console.error('Error loading subject:', error);
@@ -74,255 +70,215 @@ export default function CourseDetails() {
     }
   };
 
-  const handleStartExam = () => {
-    playClick();
-    navigate(`/exam/${subjectId}?mode=exam`);
-  };
+  const handleStartExam = () => { playClick(); navigate(`/exam/${subjectId}?mode=exam`); };
+  const handlePracticeMode = () => { playClick(); navigate(`/exam/${subjectId}?mode=practice`); };
+  const handleStudyMode = () => { playClick(); navigate(`/study/${subjectId}`); };
 
-  const handlePracticeMode = () => {
-    playClick();
-    navigate(`/exam/${subjectId}?mode=practice`);
-  };
-
-  const handleStudyMode = () => {
-    playClick();
-    navigate(`/study/${subjectId}`);
-  };
-
-  if (loading) {
-    return <div className="flex items-center justify-center h-[50vh]"><Loading text={t('common.loading')} /></div>;
-  }
-
+  if (loading) return <div className="flex items-center justify-center h-[50vh]"><Loading text={t('common.loading')} /></div>;
   if (!subject) return null;
 
   const modeCards = [
     {
       id: 'exam',
-      icon: '🎯',
+      icon: '⏱️',
       title: t('home.modes.exam.title'),
       description: t('home.modes.exam.desc'),
       features: subject.time_limit ? 
-        `⏱️ ${subject.time_limit} ${t('common.minutes')} • 📊 ${subject.passing_score}% ${t('common.passingScore')}` : 
+        `${subject.time_limit} ${t('common.minutes')} • ${subject.passing_score}% ${t('common.passingScore')}` : 
         t('home.modes.exam.features'),
       action: handleStartExam,
       buttonText: t('home.actions.examBtn'),
-      gradient: 'from-blue-500 to-indigo-600',
-      shadow: 'shadow-blue-500/30'
+      bgClass: 'bg-blue-50 dark:bg-blue-900/20',
+      btnClass: 'bg-blue-600 hover:bg-blue-700 shadow-colored-indigo'
     },
     {
       id: 'practice',
-      icon: '🎪',
+      icon: '🎯',
       title: t('home.modes.practice.title'),
       description: t('home.modes.practice.desc'),
       features: t('home.modes.practice.features'),
       action: handlePracticeMode,
       buttonText: t('home.actions.practiceBtn'),
-      gradient: 'from-orange-500 to-red-500',
-      shadow: 'shadow-orange-500/30'
+      bgClass: 'bg-orange-50 dark:bg-orange-900/20',
+      btnClass: 'bg-orange-600 hover:bg-orange-700 shadow-colored-orange'
     },
     {
       id: 'study',
-      icon: '📚',
+      icon: '🧠',
       title: t('home.modes.study.title'),
       description: t('home.modes.study.desc'),
       features: t('home.modes.study.features'),
       action: handleStudyMode,
       buttonText: t('home.actions.studyBtn'),
-      gradient: 'from-purple-500 to-pink-500',
-      shadow: 'shadow-purple-500/30'
+      bgClass: 'bg-purple-50 dark:bg-purple-900/20',
+      btnClass: 'bg-purple-600 hover:bg-purple-700 shadow-colored-purple'
     }
   ];
 
   return (
-    // ✅ ARREGLO DE OVERFLOW (Problema 1)
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 overflow-x-hidden">
-      {/* HERO SECTION */}
-      <div 
-        className="relative overflow-hidden pb-12"
-        style={{
-          background: `linear-gradient(135deg, ${subject.color}22 0%, ${subject.color}11 100%)`
-        }}
-      >
-        <div className="absolute top-4 left-4 z-10">
-             <button 
-               onClick={() => navigate(-1)}
-               className="p-2 bg-white/50 dark:bg-gray-900/30 backdrop-blur-md rounded-full 
-                          hover:bg-white/80 transition-all text-gray-700 dark:text-white"
-             >
-               ← {t('common.back')}
-             </button>
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-950 overflow-x-hidden pb-20">
+      
+      {/* 1. HERO SECTION COMPACTO Y ALINEADO */}
+      <div className="relative pt-6 pb-12 md:pt-12 md:pb-16 overflow-hidden">
+        {/* Fondo decorativo */}
+        <div className="absolute inset-0 z-0">
+          <div className="absolute top-0 left-0 w-full h-full bg-white dark:bg-gray-900" />
+          <div className="absolute top-0 w-full h-[400px]" style={{ background: `linear-gradient(180deg, ${subject.color}10 0%, transparent 100%)` }} />
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 md:pt-24">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-10"
-          >
-            <motion.div 
-              initial={{ scale: 0.8, rotate: -10 }}
-              animate={{ scale: 1, rotate: 0 }}
-              className="flex-shrink-0 w-32 h-32 md:w-40 md:h-40 rounded-3xl flex items-center justify-center text-7xl md:text-8xl shadow-xl"
-              style={{ backgroundColor: subject.color, color: 'white' }}
-            >
-              {subject.icon}
-            </motion.div>
-            
-            <div className="flex-1 text-center md:text-left">
-              <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-3">
-                 {subject.difficulty_level && (
-                  <span className="px-3 py-1 rounded-full text-xs font-bold uppercase bg-white/50 dark:bg-gray-800/50 backdrop-blur text-gray-700 dark:text-gray-300">
-                     {t(`common.difficulty.${subject.difficulty_level?.toLowerCase()}`) || subject.difficulty_level}
-                  </span>
-                 )}
-                 <span className="px-3 py-1 rounded-full text-xs font-bold bg-white/50 dark:bg-gray-800/50 backdrop-blur text-gray-700 dark:text-gray-300">
-                   ⏱️ {subject.estimated_hours}h
-                 </span>
-              </div>
+        <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6">
+            {/* Botón atrás flotante */}
+            <button 
+               onClick={() => navigate(-1)}
+               className="mb-6 px-4 py-2 rounded-full bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 text-sm font-bold text-gray-500 hover:text-gray-900 transition-colors inline-flex items-center gap-2"
+             >
+               ← {t('common.back')}
+            </button>
 
-              <h1 className="text-3xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-4 leading-tight">
-                {subject.name}
-              </h1>
-              <p className="text-base md:text-lg text-gray-700 dark:text-gray-300 max-w-2xl leading-relaxed">
-                {subject.description}
-              </p>
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-8">
+                {/* Icono: Ahora más integrado y con fondo blanco */}
+                <motion.div 
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="flex-shrink-0 w-24 h-24 md:w-32 md:h-32 rounded-3xl flex items-center justify-center text-5xl md:text-6xl shadow-xl bg-white dark:bg-gray-800 border-4 border-white dark:border-gray-700 z-20"
+                    style={{ color: subject.color }}
+                >
+                    {subject.icon}
+                </motion.div>
+
+                {/* Textos: Centrados en móvil, izquierda en desktop */}
+                <div className="flex-1 text-center md:text-left">
+                    <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-3">
+                        <span className="px-3 py-1 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wide bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-500 shadow-sm">
+                            {t(`common.difficulty.${subject.difficulty_level?.toLowerCase()}`) || subject.difficulty_level}
+                        </span>
+                        <span className="px-3 py-1 rounded-full text-[10px] md:text-xs font-bold bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-500 shadow-sm">
+                            ⏱️ {subject.estimated_hours}h
+                        </span>
+                    </div>
+                    
+                    <h1 className="text-2xl md:text-4xl font-black text-gray-900 dark:text-white mb-3 leading-tight">
+                        {subject.name}
+                    </h1>
+                    <p className="text-base text-gray-600 dark:text-gray-400 max-w-2xl mx-auto md:mx-0 leading-relaxed">
+                        {subject.description}
+                    </p>
+                </div>
             </div>
-          </motion.div>
 
-          {stats.totalAttempts > 0 && (
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4 mt-10"
-            >
-              <StatBox label={t('course.stats.bestScore')} value={`${stats.bestScore}%`} color={subject.color} />
-              <StatBox label={t('course.stats.attempts')} value={stats.totalAttempts} color={subject.color} />
-              <StatBox label={t('course.stats.avgScore')} value={`${stats.averageScore}%`} color={subject.color} />
-              <StatBox label={t('course.stats.totalXp')} value={stats.totalXpEarned} color={subject.color} />
-            </motion.div>
-          )}
+            {/* Stats Bar Compacta */}
+            {stats.totalAttempts > 0 && (
+                <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <StatBox label={t('course.stats.bestScore')} value={`${stats.bestScore}%`} icon="🏆" />
+                    <StatBox label={t('course.stats.attempts')} value={stats.totalAttempts} icon="🔄" />
+                    <StatBox label={t('course.stats.avgScore')} value={`${stats.averageScore}%`} icon="📊" />
+                    <StatBox label={t('course.stats.totalXp')} value={stats.totalXpEarned} icon="⭐" />
+                </div>
+            )}
         </div>
       </div>
 
-      {/* ACTION CARDS SECTION */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-8 md:-mt-12 relative z-10">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">
-          {t('course.chooseModeTitle')}
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {modeCards.map((mode, index) => (
-            <motion.div
-              key={mode.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 + index * 0.1 }}
-              className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden flex flex-col"
-            >
-              <div className="p-6 md:p-8 flex-1 flex flex-col">
-                <div className="text-5xl mb-4">{mode.icon}</div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                  {mode.title}
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 flex-1">
-                  {mode.description}
-                </p>
-                
-                <div className="text-xs font-medium text-gray-500 dark:text-gray-500 mb-6 bg-gray-50 dark:bg-gray-900/50 p-3 rounded-lg">
-                  {mode.features}
-                </div>
-
-                <button
-                  onClick={mode.action}
-                  className={`w-full py-3.5 px-4 rounded-xl font-bold text-white shadow-lg 
-                    bg-gradient-to-r ${mode.gradient} ${mode.shadow}
-                    hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 
-                    flex items-center justify-center gap-2`}
+      {/* 2. MODE CARDS - ELEVATED */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 md:-mt-10 relative z-20">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {modeCards.map((mode, index) => (
+                <motion.div
+                    key={mode.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="group bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-xl shadow-gray-200/50 dark:shadow-none border border-white dark:border-gray-700 hover:-translate-y-1 transition-all duration-300 flex flex-col"
                 >
-                  {mode.buttonText} →
-                </button>
-              </div>
-            </motion.div>
-          ))}
+                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-3xl mb-6 ${mode.bgClass}`}>
+                        {mode.icon}
+                    </div>
+                    
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{mode.title}</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 flex-1 leading-relaxed">{mode.description}</p>
+                    
+                    <div className="mb-6 flex items-center gap-2 text-xs font-semibold text-gray-500 dark:text-gray-400">
+                        <span>✨</span> {mode.features}
+                    </div>
+
+                    <button 
+                        onClick={mode.action}
+                        className={`w-full py-4 rounded-xl font-bold text-white transition-all transform active:scale-95 ${mode.btnClass}`}
+                    >
+                        {mode.buttonText}
+                    </button>
+                </motion.div>
+            ))}
         </div>
 
-        {/* CATEGORIES & INFO SECTION */}
-        <div className="mt-16 grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {subject.categories?.length > 0 && (
-            <div className="lg:col-span-2">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                📂 {t('course.categoriesTitle')}
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {subject.categories.map((category) => (
-                  <div 
-                    key={category.id}
-                    className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-4"
-                  >
-                    <span className="text-3xl">{category.icon || '📄'}</span>
-                    <div>
-                      <h4 className="font-bold text-gray-900 dark:text-white">
-                        {category.name}
-                      </h4>
-                       {category.weight && (
-                        <div className="mt-1.5 w-24">
-                          <ProgressBar value={category.weight * 100} max={100} className="h-1.5" color={subject.color} />
-                        </div>
-                      )}
+        {/* 3. CONTENT LIST (SYLLABUS) */}
+        <div className="mt-16 grid grid-cols-1 lg:grid-cols-3 gap-10">
+            <div className="lg:col-span-2 space-y-6">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                   📚 {t('course.categoriesTitle')}
+                </h2>
+                
+                {subject.categories?.length > 0 ? (
+                    <div className="space-y-4">
+                        {subject.categories.map((category) => (
+                            <div key={category.id} className="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-5 hover:shadow-md transition-shadow">
+                                <div className="w-12 h-12 rounded-xl bg-gray-50 dark:bg-gray-700 flex items-center justify-center text-2xl">
+                                    {category.icon || '📄'}
+                                </div>
+                                <div className="flex-1">
+                                    <h4 className="font-bold text-gray-900 dark:text-white text-lg">{category.name}</h4>
+                                    {category.description && <p className="text-sm text-gray-500">{category.description}</p>}
+                                </div>
+                                {category.weight && (
+                                    <div className="text-right">
+                                        <span className="text-xs font-bold text-gray-400 block mb-1">PESO</span>
+                                        <span className="text-sm font-bold bg-indigo-50 text-indigo-700 px-2 py-1 rounded">{Math.round(category.weight * 100)}%</span>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
                     </div>
-                  </div>
-                ))}
-              </div>
+                ) : (
+                    <p className="text-gray-500 italic">No hay contenido disponible aún.</p>
+                )}
             </div>
-          )}
 
-          {(subject.institution || subject.instructor) && (
-            <div className="bg-gray-100 dark:bg-gray-800/50 rounded-2xl p-6 lg:sticky lg:top-24 h-fit">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                ℹ️ {t('course.additionalInfo')}
-              </h2>
-              <div className="space-y-4">
-                {subject.institution && (
-                  <InfoRow label={t('course.institution')} value={subject.institution} icon="🏫" />
-                )}
-                {subject.instructor && (
-                  <InfoRow label={t('course.instructor')} value={subject.instructor} icon="👨‍🏫" />
-                )}
-                {subject.curriculum && (
-                   <InfoRow label={t('course.curriculum')} value={subject.curriculum} icon="📜" />
-                )}
-              </div>
+            {/* SIDEBAR INFO */}
+            <div className="space-y-6">
+                 <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-lg border border-gray-100 dark:border-gray-700">
+                    <h3 className="font-bold text-gray-900 dark:text-white mb-6">Información</h3>
+                    <div className="space-y-5">
+                        <InfoRow label={t('course.institution')} value={subject.institution} icon="🏛️" />
+                        <InfoRow label={t('course.instructor')} value={subject.instructor} icon="👨‍🏫" />
+                        <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
+                            <InfoRow label="Última Actualización" value="Oct 2025" icon="📅" />
+                        </div>
+                    </div>
+                 </div>
             </div>
-          )}
         </div>
       </div>
     </div>
   );
 }
 
-// ... (Componentes auxiliares StatBox e InfoRow) ...
-function StatBox({ label, value, color }) {
+function StatBox({ label, value, icon }) {
   return (
-    <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-md rounded-2xl p-4 text-center shadow-sm border border-white/20">
-      <div className="text-2xl md:text-3xl font-extrabold" style={{ color: color }}>
-        {value}
-      </div>
-      <div className="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400 mt-1">
-        {label}
-      </div>
+    <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur rounded-2xl p-3 border border-gray-100 dark:border-gray-700 shadow-sm text-center">
+      <div className="text-xl mb-1">{icon}</div>
+      <div className="text-lg font-bold text-gray-900 dark:text-white">{value}</div>
+      <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{label}</div>
     </div>
   );
 }
 
 function InfoRow({ label, value, icon }) {
-  return (
-    <div>
-      <h4 className="text-xs uppercase tracking-wider font-semibold text-gray-500 dark:text-gray-400 mb-1">
-        {label}
-      </h4>
-      <p className="text-base font-medium text-gray-900 dark:text-white flex items-center gap-2">
-        <span>{icon}</span> {value}
-      </p>
-    </div>
-  );
+    if (!value) return null;
+    return (
+        <div>
+            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">{label}</span>
+            <div className="flex items-center gap-2 font-medium text-gray-900 dark:text-white">
+                <span>{icon}</span> {value}
+            </div>
+        </div>
+    );
 }

@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getSubject, getQuestions } from '../services/subjectsService';
-import { resultsService } from '../services/resultsService';
-import { shuffleArray, shuffleOptions } from '../utils/shuffle';
 import { calculateResults } from '../utils/calculateScore';
+import { shuffleArray, shuffleOptions } from '../utils/shuffle';
 import { usePersistence, useSyncUnsynced } from './usePersistence';
 import { dbManager } from '../lib/indexedDB';
 
@@ -17,6 +16,7 @@ export function useExam(subjectId, mode = 'exam', language = 'es') {
   const [isFinished, setIsFinished] = useState(false);
   const [results, setResults] = useState(null);
   
+  // Timer State
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [timerRunning, setTimerRunning] = useState(false);
   const timerRef = useRef(null);
@@ -55,55 +55,10 @@ export function useExam(subjectId, mode = 'exam', language = 'es') {
     }
   });
 
-  useEffect(() => {
-    const recoverProgress = async () => {
-      if (questions.length === 0 || isFinished) return;
-      
-      console.log('🔍 Buscando progreso guardado para:', sessionId.current);
-      const recovered = await recover();
-      
-      if (recovered && !isFinished) {
-        console.log('🔄 Recuperando progreso...', recovered);
-        setCurrentIndex(recovered.currentIndex || 0);
-        setAnswers(recovered.answers || {});
-        setReviewedQuestions(new Set(recovered.reviewedQuestions || []));
-        setTimeRemaining(recovered.timeRemaining || 0);
-        setTimerRunning(recovered.timerRunning || false);
-        if (recovered.startTime) startTime.current = new Date(recovered.startTime);
-      }
-    };
-
-    if (sessionId.current && questions.length > 0) {
-      recoverProgress();
-    }
-  }, [questions.length]);
-
-  useEffect(() => {
-    if (timerRunning && timeRemaining > 0) {
-      timerRef.current = setInterval(() => {
-        setTimeRemaining(prev => {
-          if (prev <= 1) {
-            setTimerRunning(false);
-            setTimeout(() => finishExam(), 100);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } else {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
-      }
-    }
-
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [timerRunning, timeRemaining]);
-
+  // 1. Carga Inicial Atómica (Datos + Recuperación)
   useEffect(() => {
     loadExam();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subjectId, language]);
 
   const loadExam = async () => {
@@ -111,17 +66,15 @@ export function useExam(subjectId, mode = 'exam', language = 'es') {
       setIsLoading(true);
       setError(null);
 
+      // A. Cargar Datos del Curso
       const subjectData = await getSubject(subjectId, language);
-      
-      if (!subjectData) {
-        throw new Error('No se pudo cargar la información de la materia');
-      }
+      if (!subjectData) throw new Error('No se pudo cargar la información de la materia');
 
       const loadedConfig = {
         name: subjectData.name,
         icon: subjectData.icon,
         settings: {
-          timeLimit: subjectData.time_limit,
+          timeLimit: Number(subjectData.time_limit) || 0, // Asegurar número
           passingScore: subjectData.passing_score,
           randomizeQuestions: subjectData.randomize_questions,
           randomizeOptions: subjectData.randomize_options
@@ -129,40 +82,81 @@ export function useExam(subjectId, mode = 'exam', language = 'es') {
       };
       setConfig(loadedConfig);
 
+      // B. Cargar Preguntas
       let loadedQuestions = await getQuestions(subjectId, language);
-
       if (!loadedQuestions || loadedQuestions.length === 0) {
-        throw new Error('No hay preguntas disponibles para esta materia en el idioma seleccionado');
+        throw new Error('No hay preguntas disponibles');
       }
 
       if (loadedConfig.settings.randomizeQuestions) {
         loadedQuestions = shuffleArray(loadedQuestions);
       }
-
       if (loadedConfig.settings.randomizeOptions) {
         loadedQuestions = loadedQuestions.map(q => {
           const { options, correctIndex } = shuffleOptions(q.options, q.correct);
           return { ...q, options, correct: correctIndex };
         });
       }
-
       setQuestions(loadedQuestions);
-      
-      if (!startTime.current) startTime.current = new Date();
 
-      if (mode === 'exam' && loadedConfig.settings.timeLimit > 0) {
-        setTimeRemaining(loadedConfig.settings.timeLimit * 60);
-        setTimerRunning(true);
+      // C. Intentar Recuperar Sesión (PERSISTENCIA)
+      const savedSession = await recover();
+      
+      if (savedSession && !savedSession.isFinished) {
+        console.log('🔄 Restaurando sesión:', savedSession);
+        setCurrentIndex(savedSession.currentIndex || 0);
+        setAnswers(savedSession.answers || {});
+        setReviewedQuestions(new Set(savedSession.reviewedQuestions || []));
+        
+        // Restaurar tiempo guardado
+        if (mode === 'exam') {
+            setTimeRemaining(savedSession.timeRemaining || 0);
+            setTimerRunning(true); // Reanudar timer automáticamente
+        }
+        
+        if (savedSession.startTime) startTime.current = new Date(savedSession.startTime);
+      } else {
+        // D. Iniciar Nueva Sesión
+        console.log('🆕 Iniciando nueva sesión');
+        startTime.current = new Date();
+        
+        if (mode === 'exam' && loadedConfig.settings.timeLimit > 0) {
+          // Iniciar con tiempo completo del curso
+          setTimeRemaining(loadedConfig.settings.timeLimit * 60);
+          setTimerRunning(true);
+        }
       }
 
-      setIsLoading(false);
     } catch (err) {
       console.error('Error cargando examen:', err);
       setError(err.message);
+    } finally {
       setIsLoading(false);
     }
   };
 
+  // 2. Lógica del Cronómetro (setInterval)
+  useEffect(() => {
+    if (timerRunning && timeRemaining > 0) {
+      timerRef.current = setInterval(() => {
+        setTimeRemaining(prev => {
+          if (prev <= 1) {
+            setTimerRunning(false);
+            // Pequeño delay para evitar conflicto de render
+            setTimeout(() => finishExam(), 0);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [timerRunning]); // Eliminamos timeRemaining de dep para evitar recrear intervalo cada segundo
+
+  // ... Resto de funciones (selectAnswer, goToQuestion, etc.) sin cambios ...
   const selectAnswer = useCallback((questionId, answerIndex) => {
     setAnswers(prev => ({ ...prev, [questionId]: answerIndex }));
     hasUnsavedChanges.current = true;
@@ -218,17 +212,9 @@ export function useExam(subjectId, mode = 'exam', language = 'es') {
       setResults(examResults);
       setIsFinished(true);
 
-      if (mode === 'exam') {
-        try {
-          console.log('✅ Resultados listos para guardar');
-          await dbManager.deleteExamSession(sessionId.current);
-        } catch (saveError) {
-          console.error('Error guardando resultados:', saveError);
-        }
-      } else {
-        await dbManager.deleteExamSession(sessionId.current);
-      }
-
+      // Limpiar sesión guardada
+      await dbManager.deleteExamSession(sessionId.current);
+      
       hasUnsavedChanges.current = false;
       return examResults;
     } catch (err) {
@@ -245,13 +231,14 @@ export function useExam(subjectId, mode = 'exam', language = 'es') {
     setResults(null);
     startTime.current = new Date();
     hasUnsavedChanges.current = false;
-    loadExam();
+    loadExam(); // Recargar todo limpio
   }, [loadExam]);
 
   const progress = questions.length > 0 ? (Object.keys(answers).length / questions.length) * 100 : 0;
   const currentQuestion = questions[currentIndex];
   const currentAnswer = currentQuestion ? answers[currentQuestion.id] : undefined;
 
+  // Protección anti-cierre accidental
   useEffect(() => {
     const handleBeforeUnload = (e) => {
       if (hasUnsavedChanges.current && !isFinished) {

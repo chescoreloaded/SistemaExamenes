@@ -61,9 +61,9 @@ export default function Home() {
   if (loading) return <div className="flex items-center justify-center h-[50vh]"><Loading text={t('common.loading')} /></div>;
 
   return (
-    <div className="min-h-screen">
+<div className="min-h-screen bg-slate-50 dark:bg-gray-900 transition-colors duration-300">
       {/* Hero Section Responsive: Ajuste de padding vertical y tamaño de fuente */}
-      <div className="relative overflow-hidden mb-8 md:mb-12 py-12 md:py-24 xl:py-32 bg-white dark:bg-gray-900">
+      <div className="relative overflow-hidden mb-8 md:mb-12 py-12 md:py-24 xl:py-32 bg-white dark:bg-gray-900 shadow-sm border-b border-gray-100 dark:border-none">
         <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(#1f2937_1px,transparent_1px)] [background-size:16px_16px] opacity-50" />
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -105,16 +105,27 @@ export default function Home() {
               ))}
             </div>
             
-            <div className="text-center mb-24">
-              <Button 
-                size="lg"
-                variant="outline"
-                onClick={() => { playClick(); navigate('/explorer'); }}
-                className="px-8 py-4 text-lg rounded-full border-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all w-full md:w-auto"
-              >
-                🔍 {t('home.exploreMore')}
-              </Button>
-            </div>
+<div className="text-center mb-24">
+    <Button 
+      size="lg"
+      onClick={() => { playClick(); navigate('/explorer'); }}
+      className="
+        w-full md:w-auto px-10 py-7 text-xl font-bold rounded-2xl transition-all duration-300 
+        
+        /* LIGHT MODE: Estilo 'Elevated Surface' (Sombra fuerte, blanco puro, texto vibrante) */
+        bg-white text-indigo-600 
+        shadow-[0_10px_40px_-10px_rgba(79,70,229,0.3)] 
+        hover:shadow-[0_20px_40px_-10px_rgba(79,70,229,0.4)]
+        hover:-translate-y-1 ring-1 ring-indigo-50
+
+        /* DARK MODE: Estilo 'Glow' */
+        dark:bg-indigo-600 dark:text-white dark:shadow-none
+        dark:hover:bg-indigo-500
+      "
+    >
+      <span className="mr-2">🔍</span> {t('home.exploreMore')}
+    </Button>
+  </div>
           </>
         ) : (
           <div className="text-center py-20 opacity-50">
