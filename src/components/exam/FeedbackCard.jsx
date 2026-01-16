@@ -1,8 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import PropTypes from 'prop-types';
 import { useState } from 'react';
-// import { useNavigate } from 'react-router-dom'; // No se usa
-// import { useSoundContext } from '@/context/SoundContext'; // 🗑️ ELIMINADO
 import { useLanguage } from '@/context/LanguageContext';
 
 export function FeedbackCard({ 
@@ -12,35 +10,42 @@ export function FeedbackCard({
   isCorrect,
   explanation,
   onClose
-  // showConfetti // 🗑️ Ya no necesitamos recibir esto aquí
 }) {
   const [showExplanation, setShowExplanation] = useState(false);
-  // const { playClick } = useSoundContext(); // 🗑️ El padre manejará el click de cierre
   const { t } = useLanguage();
 
-  // 🗑️ ELIMINADO: Este useEffect era el causante del confetti fantasma y doble sonido
-  /* useEffect(() => {
-    if (isCorrect) {
-      playCorrect();
-      if (showConfetti) showConfetti();
-    } else {
-      playIncorrect();
-    }
-  }, [isCorrect, showConfetti, playCorrect, playIncorrect]);
-  */
-
   const handleToggleExplanation = () => {
-    // playClick(); // Opcional: si quieres sonido aquí, pásalo como prop o impórtalo, pero es mejor que sea visual
     setShowExplanation(!showExplanation);
   };
 
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ opacity: 0, scale: 0.9, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.9, y: 20 }}
-        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+        // 🚀 FÍSICA CARTOON (Pop & Bounce)
+        initial={{ 
+          opacity: 0, 
+          scale: 0.5, // Empieza pequeño para explotar
+          y: 100,     // Viene un poco desde abajo
+          rotateX: 45 // Un poco de inclinación 3D inicial
+        }}
+        animate={{ 
+          opacity: 1, 
+          scale: 1, 
+          y: 0, 
+          rotateX: 0 
+        }}
+        exit={{ 
+          opacity: 0, 
+          scale: 0.9, 
+          transition: { duration: 0.1 } // Salida ultra rápida
+        }}
+        transition={{ 
+          type: "spring",
+          damping: 12,    // Poca resistencia = mucho rebote (Jelly effect)
+          stiffness: 500, // Mucha fuerza = velocidad explosiva
+          mass: 0.8,      // Ligero = se mueve rápido
+          restDelta: 0.001
+        }}
         className={`
           relative w-full max-w-2xl mx-auto rounded-2xl shadow-2xl overflow-hidden
           flex flex-col max-h-[85vh] 
@@ -50,7 +55,7 @@ export function FeedbackCard({
           }
         `}
       >
-        {/* Header */}
+        {/* Header con Animación del Icono independiente */}
         <div className={`
           p-4 md:p-6 text-white text-center flex-shrink-0
           ${isCorrect 
@@ -58,13 +63,19 @@ export function FeedbackCard({
             : 'bg-gradient-to-r from-red-500 to-pink-600'
           }
         `}>
-          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="flex justify-center mb-2">
+          <motion.div 
+            initial={{ scale: 0, rotate: -180 }} 
+            animate={{ scale: 1, rotate: 0 }} 
+            transition={{ type: "spring", stiffness: 200, delay: 0.1 }} // El icono llega un pelín después para dar ritmo
+            className="flex justify-center mb-2"
+          >
             {isCorrect ? (
               <span className="text-5xl md:text-6xl drop-shadow-md">🎉</span>
             ) : (
               <span className="text-5xl md:text-6xl drop-shadow-md">❌</span>
             )}
           </motion.div>
+          
           <h3 className="text-2xl md:text-3xl font-bold mb-1 md:mb-2">
             {isCorrect ? t('exam.feedback.correct.title') : t('exam.feedback.incorrect.title')}
           </h3>
@@ -74,7 +85,7 @@ export function FeedbackCard({
         </div>
 
         {/* Body Scrollable */}
-        <div className="p-4 md:p-6 space-y-4 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm overflow-y-auto">
+        <div className="p-4 md:p-6 space-y-4 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm overflow-y-auto custom-scrollbar">
           {/* Pregunta */}
           <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
             <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">
@@ -139,7 +150,7 @@ export function FeedbackCard({
         {/* Footer */}
         <div className="p-4 md:p-6 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-700 flex-shrink-0">
           <button
-            onClick={onClose} // El padre maneja el sonido de click
+            onClick={onClose}
             autoFocus 
             className={`
               w-full py-3 md:py-4 rounded-xl font-bold text-white text-base md:text-lg shadow-lg transform transition-all hover:scale-[1.02] active:scale-[0.98]

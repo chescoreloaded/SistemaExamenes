@@ -85,68 +85,77 @@ export default function ExamMode() {
     fire(0.1, { spread: 120, startVelocity: 45 });
   }, []);
 
-  const handleSelectAnswer = useCallback(async (answerIndex) => {
+const handleSelectAnswer = useCallback(async (answerIndex) => {
     if (!currentQuestion) return;
+    // Evitar doble clic o clic si ya está respondida en modo práctica
     if ((currentAnswer !== undefined && mode === 'practice') || isProcessing.current) return;
 
-    isProcessing.current = true;
+    isProcessing.current = true; // Bloqueo de UI
 
     const question = questions[currentIndex];
-    selectAnswer(currentQuestion.id, answerIndex);
+    selectAnswer(currentQuestion.id, answerIndex); // Guardar respuesta en estado
 
     if (mode === 'practice') {
       const isCorrect = answerIndex === question.correct;
       
-      // 🚀 1. FEEDBACK INMEDIATO (Optimistic UI)
-      // Reproducimos el sonido PRINCIPAL aquí mismo
-      if (isCorrect) {
-          playCorrect(); 
-      } else {
-          playIncorrect();
-      }
+      // 🚀 1. FEEDBACK TÁCTIL (Inmediato)
+      // Solo reproducimos un "Click" neutro para confirmar que el sistema recibió la orden.
+      // El usuario ve el botón cambiar de color instantáneamente gracias a QuestionCard.
+      playClick(); 
 
-      // 🚀 2. RACHA OPTIMISTA
-      // Calculamos la racha "futura" sin esperar a la DB
+      // Calculamos la racha futura
       const nextStreak = isCorrect ? correctStreak + 1 : 0;
       
-      // Si la racha es buena (>=3) y es correcta, agendamos el sonido de racha
-      // con un pequeño delay para que no se pise con el "playCorrect"
-      if (isCorrect && nextStreak >= 3) {
-          setTimeout(() => playStreak(), 400); // 400ms después del "cling"
-      }
-
-      // 💾 3. OPERACIONES EN SEGUNDO PLANO (Fire and Forget)
-      // No usamos 'await' para bloquear la UI. Dejamos que corran solas.
+      // Operaciones en segundo plano (DB)
       handleAnswer(isCorrect); 
       addAnswerXP(isCorrect, question.difficulty || 'basico', nextStreak);
       checkAchievements({}, { isCorrect, currentStreak: nextStreak });
 
-      // 4. PREPARAR UI
+      // Preparamos datos del modal
       setCurrentFeedback({
-        question: question.question, userAnswer: question.options[answerIndex],
-        correctAnswer: question.options[question.correct], isCorrect,
-        explanation: question.explanation, relatedFlashcard: question.relatedFlashcard,
+        question: question.question, 
+        userAnswer: question.options[answerIndex],
+        correctAnswer: question.options[question.correct], 
+        isCorrect,
+        explanation: question.explanation, 
+        relatedFlashcard: question.relatedFlashcard,
         xpGained: isCorrect ? 10 : 0, 
         streakMultiplier: isCorrect && nextStreak >= 2 ? 1.5 : 1
       });
       
-      // 5. SECUENCIA VISUAL (Modal + Confetti)
+      // 🚀 2. LA REVELACIÓN (Sincronizada)
+      // Esperamos el delay para lanzar Sonido + Modal + Confetti juntos
       setTimeout(() => { 
+          
+          // A. Sonido de Veredicto (Ahora suena JUNTO con el modal)
+          if (isCorrect) {
+              playCorrect(); 
+          } else {
+              playIncorrect();
+          }
+
+          // B. Mostrar Modal
           setShowFeedbackModal(true); 
           
+          // C. Efectos Extra (Racha y Confetti)
           if (isCorrect) {
+             // Si hay racha alta, sonamos el "Fuego" un poquito después del "Correcto"
+             if (nextStreak >= 3) {
+                setTimeout(() => playStreak(), 300); 
+             }
+             // Confetti entra con un ligero desfase visual para no saturar
              setTimeout(() => fireConfetti(), 200); 
           }
           
-          // Desbloquear al terminar la animación de entrada
-          isProcessing.current = false;
-      }, 400);
+          isProcessing.current = false; // Desbloqueamos
+      }, 150); // 400ms de suspenso
 
     } else {
+        // Modo Examen: Solo click y avanzar (o esperar si es la última)
+        playClick();
         isProcessing.current = false;
     }
-  }, [currentIndex, questions, currentQuestion, selectAnswer, mode, handleAnswer, playCorrect, playIncorrect, playStreak, addAnswerXP, points, checkAchievements, getStreakMultiplier, fireConfetti, currentAnswer, correctStreak]);
-
+  }, [currentIndex, questions, currentQuestion, selectAnswer, mode, handleAnswer, playCorrect, playIncorrect, playStreak, playClick, addAnswerXP, points, checkAchievements, getStreakMultiplier, fireConfetti, currentAnswer, correctStreak]);
   // ... (Resto del código: useSwipe, useEffects, render, etc. se mantienen igual) ...
   // ... Asegúrate de copiar el resto del componente como estaba en la respuesta anterior ...
   // ... Solo asegúrate de pasar playClick al cerrar el modal ...
