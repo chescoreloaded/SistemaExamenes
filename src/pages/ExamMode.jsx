@@ -1,6 +1,8 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import confetti from 'canvas-confetti';
+import { Howler } from 'howler'; 
+
 import { useExam } from '../hooks/useExam';
 import { useSwipe } from '../hooks/useSwipe';
 import { useExamStore } from '../store/examStore';
@@ -9,15 +11,26 @@ import { useAchievements } from '../hooks/useAchievements';
 import { useStreak } from '../hooks/useStreak';
 import { useSoundContext } from '../context/SoundContext';
 import { useLanguage } from '../context/LanguageContext';
-import { QuestionNavigator, FeedbackCard } from '../components/exam'; // Asegúrate que FeedbackCard es el nuevo
+import { calculateLevel } from '../utils/xpCalculator';
+
+// Componentes UI
+import { QuestionNavigator, FeedbackCard } from '../components/exam';
 import QuestionCard from '../components/exam/QuestionCard';
 import ExamStats from '@/components/exam/ExamStats';
+import { GamificationHUDLottie } from '../components/gamification/GamificationHUDLottie'; // ✅ HUD Final
 import { Loading, Modal, Button as CommonButton, SkeletonLoader } from '../components/common';
 import { SaveIndicator } from '../components/common/SaveIndicator';
 import { ImmersiveHeader } from '@/components/layout';
 import MobileSettingsMenu from '@/components/layout/MobileSettingsMenu';
 
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+// 🟢 UI Components (Con el fix de accesibilidad)
+import { 
+  Sheet, 
+  SheetContent, 
+  SheetTrigger, 
+  SheetTitle,        // 👈 Importante para el fix
+  SheetDescription   // 👈 Importante para el fix
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -33,11 +46,13 @@ export default function ExamMode() {
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [currentFeedback, setCurrentFeedback] = useState(null);
   
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isMobileNavigatorOpen, setIsMobileNavigatorOpen] = useState(false);
 
   // 🔒 BLOQUEO
   const isProcessing = useRef(false);
+  
+  // 🎵 AUDIO: Racha exclusiva de esta sesión
+  const sessionStreak = useRef(0);
 
   const { setCurrentSubject, addRecentSubject } = useExamStore();
 
@@ -51,10 +66,36 @@ export default function ExamMode() {
 
   const { points, formattedStats, addAnswerXP, addExamXP, recentXPGain } = usePoints();
   const { recentlyUnlocked, checkAchievements, clearRecentlyUnlocked } = useAchievements();
-  const { correctStreak, dailyStreak, handleAnswer, updateDailyStreak, getStreakMultiplier } = useStreak();
   
-  // ✅ IMPORTAMOS TODOS LOS SONIDOS AQUÍ
+  // ✅ Extraemos resetStreak para limpiar la racha al iniciar
+  const { correctStreak, dailyStreak, handleAnswer, updateDailyStreak, getStreakMultiplier, resetStreak } = useStreak();
+  
   const { playStreak, playCorrect, playIncorrect, playExamCompleteSuccess, playExamCompleteFail, playClick } = useSoundContext();
+
+  // Cálculo de Nivel en tiempo real para el HUD
+  const userLevel = calculateLevel(points || 0).level;
+
+  // ✅ EFECTO: Resetear audio Y RACHA al entrar
+  useEffect(() => {
+    // A. Inicializar Audio
+    if (Howler.ctx && Howler.ctx.state === 'suspended') {
+        try { Howler.ctx.resume(); } catch(e) { console.warn(e); }
+    }
+    
+    // B. 🔥 REINICIAR RACHA AL ENTRAR (Para que empiece en 0)
+    // Solo si estamos en modo práctica
+    if (mode === 'practice' && resetStreak) {
+        resetStreak();
+    }
+    
+    // C. Reiniciar Racha de Audio (Local)
+    sessionStreak.current = 0;
+    
+    return () => {
+       sessionStreak.current = 0;
+       Howler.volume(localStorage.getItem('soundVolume') || 0.5); 
+    };
+  }, []); 
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -63,21 +104,10 @@ export default function ExamMode() {
 
   const fireConfetti = useCallback(() => {
     const count = 200;
-    const defaults = {
-      origin: { y: 0.7 },
-      zIndex: 9999,
-      gravity: 1.2,
-      scalar: 1.2,
-    };
-
+    const defaults = { origin: { y: 0.7 }, zIndex: 9999, gravity: 1.2, scalar: 1.2 };
     function fire(particleRatio, opts) {
-      confetti({
-        ...defaults,
-        ...opts,
-        particleCount: Math.floor(count * particleRatio)
-      });
+      confetti({ ...defaults, ...opts, particleCount: Math.floor(count * particleRatio) });
     }
-
     fire(0.25, { spread: 26, startVelocity: 55 });
     fire(0.2, { spread: 60 });
     fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
@@ -85,80 +115,74 @@ export default function ExamMode() {
     fire(0.1, { spread: 120, startVelocity: 45 });
   }, []);
 
-const handleSelectAnswer = useCallback(async (answerIndex) => {
+  const handleSelectAnswer = useCallback(async (answerIndex) => {
     if (!currentQuestion) return;
-    // Evitar doble clic o clic si ya está respondida en modo práctica
     if ((currentAnswer !== undefined && mode === 'practice') || isProcessing.current) return;
 
-    isProcessing.current = true; // Bloqueo de UI
+    isProcessing.current = true;
 
     const question = questions[currentIndex];
-    selectAnswer(currentQuestion.id, answerIndex); // Guardar respuesta en estado
+    selectAnswer(currentQuestion.id, answerIndex);
 
     if (mode === 'practice') {
       const isCorrect = answerIndex === question.correct;
       
-      // 🚀 1. FEEDBACK TÁCTIL (Inmediato)
-      // Solo reproducimos un "Click" neutro para confirmar que el sistema recibió la orden.
-      // El usuario ve el botón cambiar de color instantáneamente gracias a QuestionCard.
       playClick(); 
 
-      // Calculamos la racha futura
-      const nextStreak = isCorrect ? correctStreak + 1 : 0;
+      // --- CÁLCULOS DE RACHA ---
+      const currentGlobalValue = typeof correctStreak === 'object' && correctStreak !== null
+          ? (correctStreak.current ?? 0)
+          : Number(correctStreak) || 0;
       
-      // Operaciones en segundo plano (DB)
-      handleAnswer(isCorrect); 
-      addAnswerXP(isCorrect, question.difficulty || 'basico', nextStreak);
-      checkAchievements({}, { isCorrect, currentStreak: nextStreak });
+      const nextGlobalStreak = isCorrect ? currentGlobalValue + 1 : 0;
 
-      // Preparamos datos del modal
+      // Racha de Sesión (Audio)
+      if (isCorrect) {
+          sessionStreak.current += 1;
+      } else {
+          sessionStreak.current = 0;
+      }
+
+      // --- EFECTOS ---
+      if (isCorrect && nextGlobalStreak >= 3) {
+          setTimeout(() => playStreak(), 400); 
+      }
+
+      // Operaciones DB
+      handleAnswer(isCorrect); 
+      addAnswerXP(isCorrect, question.difficulty || 'basico', nextGlobalStreak);
+      checkAchievements({}, { isCorrect, currentStreak: nextGlobalStreak });
+
+      // Preparar UI
       setCurrentFeedback({
-        question: question.question, 
-        userAnswer: question.options[answerIndex],
-        correctAnswer: question.options[question.correct], 
-        isCorrect,
-        explanation: question.explanation, 
-        relatedFlashcard: question.relatedFlashcard,
+        question: question.question, userAnswer: question.options[answerIndex],
+        correctAnswer: question.options[question.correct], isCorrect,
+        explanation: question.explanation, relatedFlashcard: question.relatedFlashcard,
         xpGained: isCorrect ? 10 : 0, 
-        streakMultiplier: isCorrect && nextStreak >= 2 ? 1.5 : 1
+        streakMultiplier: isCorrect && nextGlobalStreak >= 2 ? 1.5 : 1
       });
       
-      // 🚀 2. LA REVELACIÓN (Sincronizada)
-      // Esperamos el delay para lanzar Sonido + Modal + Confetti juntos
+      // LA REVELACIÓN
       setTimeout(() => { 
-          
-          // A. Sonido de Veredicto (Ahora suena JUNTO con el modal)
           if (isCorrect) {
-              playCorrect(); 
+              playCorrect(sessionStreak.current); 
           } else {
               playIncorrect();
           }
 
-          // B. Mostrar Modal
           setShowFeedbackModal(true); 
           
-          // C. Efectos Extra (Racha y Confetti)
           if (isCorrect) {
-             // Si hay racha alta, sonamos el "Fuego" un poquito después del "Correcto"
-             if (nextStreak >= 3) {
-                setTimeout(() => playStreak(), 300); 
-             }
-             // Confetti entra con un ligero desfase visual para no saturar
              setTimeout(() => fireConfetti(), 200); 
           }
           
-          isProcessing.current = false; // Desbloqueamos
-      }, 150); // 400ms de suspenso
+          isProcessing.current = false;
+      }, 150); 
 
     } else {
-        // Modo Examen: Solo click y avanzar (o esperar si es la última)
-        playClick();
         isProcessing.current = false;
     }
-  }, [currentIndex, questions, currentQuestion, selectAnswer, mode, handleAnswer, playCorrect, playIncorrect, playStreak, playClick, addAnswerXP, points, checkAchievements, getStreakMultiplier, fireConfetti, currentAnswer, correctStreak]);
-  // ... (Resto del código: useSwipe, useEffects, render, etc. se mantienen igual) ...
-  // ... Asegúrate de copiar el resto del componente como estaba en la respuesta anterior ...
-  // ... Solo asegúrate de pasar playClick al cerrar el modal ...
+  }, [currentIndex, questions, currentQuestion, selectAnswer, mode, handleAnswer, playCorrect, playIncorrect, playStreak, addAnswerXP, points, checkAchievements, getStreakMultiplier, fireConfetti, currentAnswer, correctStreak]);
 
   useSwipe(
     () => { if (canGoNext) { playClick(); nextQuestion(); } },
@@ -194,10 +218,11 @@ const handleSelectAnswer = useCallback(async (answerIndex) => {
         case 'm': case 'M': e.preventDefault(); playClick(); toggleReview(); break;
         case 'Enter': e.preventDefault(); 
             if (showFeedbackModal) {
+                 playClick();
                  setShowFeedbackModal(false);
                  setCurrentFeedback(null);
                  isProcessing.current = false; 
-                 if (canGoNext) { playClick(); nextQuestion(); }
+                 if (canGoNext) { nextQuestion(); }
             } else if (mode === 'practice' && currentAnswer !== undefined && canGoNext) { 
                 playClick(); nextQuestion(); 
             } 
@@ -299,6 +324,7 @@ const handleSelectAnswer = useCallback(async (answerIndex) => {
       <ImmersiveHeader showControls={false}>
         <div className="hidden sm:block"><SaveIndicator status={saveStatus} /></div>
         
+        {/* MOBILE NAVIGATOR SHEET */}
         <Sheet open={isMobileNavigatorOpen} onOpenChange={setIsMobileNavigatorOpen}>
           <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="h-9 w-9 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-gray-800">
@@ -306,6 +332,13 @@ const handleSelectAnswer = useCallback(async (answerIndex) => {
               </Button>
           </SheetTrigger>
           <SheetContent side="bottom" className="h-[85vh] rounded-t-2xl p-0 [&>button]:hidden flex flex-col gap-0 border-t-0">
+              
+              {/* 🟢 ACCESSIBILITY FIX: Título y descripción ocultos pero presentes */}
+              <SheetTitle className="hidden">Navegador de Preguntas</SheetTitle>
+              <SheetDescription className="hidden">
+                  Panel para navegar entre las preguntas del examen.
+              </SheetDescription>
+
               <ExamSidePanel onClose={() => setIsMobileNavigatorOpen(false)} />
           </SheetContent>
         </Sheet>
@@ -322,6 +355,7 @@ const handleSelectAnswer = useCallback(async (answerIndex) => {
         </Button>
       </ImmersiveHeader>
 
+      {/* HEADER DE PROGRESO */}
       <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 py-3 shadow-sm z-30">
          <div className="max-w-5xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             
@@ -354,7 +388,8 @@ const handleSelectAnswer = useCallback(async (answerIndex) => {
                   </div>
                 )}
                 
-                <div className="flex items-center gap-2 flex-1 sm:flex-none sm:w-32">
+                {/* Ocultamos la barra superior en móvil si estamos en modo práctica (tenemos HUD) */}
+                <div className={`flex items-center gap-2 flex-1 sm:flex-none sm:w-32 ${mode === 'practice' ? 'hidden sm:flex' : ''}`}>
                    <div className="h-2 flex-1 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden border border-gray-100 dark:border-gray-700">
                       <div className="h-full bg-indigo-500 transition-all duration-500" style={{ width: `${progress}%` }} />
                    </div>
@@ -365,7 +400,16 @@ const handleSelectAnswer = useCallback(async (answerIndex) => {
       </div>
 
       <main className="flex-1 w-full max-w-4xl mx-auto px-0 sm:px-4 flex flex-col items-center relative min-h-0 overflow-y-auto custom-scrollbar">
-          <div className="w-full py-4 px-4 sm:px-0">
+          
+          {/* ✅ HUD GAMIFICADO CON LOTTIE (Versión Final) */}
+          <div className="w-full px-4 pt-4 pb-2">
+             <GamificationHUDLottie 
+                streak={typeof correctStreak === 'object' ? (correctStreak.current || 0) : Number(correctStreak) || 0} 
+                level={userLevel} 
+             />
+          </div>
+
+          <div className="w-full px-4 sm:px-0">
               <QuestionCard
                 question={currentQuestion}
                 currentIndex={currentIndex}
@@ -378,6 +422,7 @@ const handleSelectAnswer = useCallback(async (answerIndex) => {
           </div>
       </main>
 
+      {/* Footer / Controls */}
       <div className="flex-shrink-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 p-4 z-30 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)]">
          <div className="max-w-3xl mx-auto">
             <div className="grid grid-cols-5 gap-3 h-14">
@@ -484,11 +529,10 @@ const handleSelectAnswer = useCallback(async (answerIndex) => {
 
       {showFeedbackModal && currentFeedback && mode === 'practice' && (
         <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-           {/* ✅ PASAMOS playClick PARA QUE EL BOTÓN CONTINUAR TENGA SONIDO */}
            <FeedbackCard
             {...currentFeedback}
             onClose={() => {
-              playClick(); // Sonido al cerrar
+              playClick(); 
               setShowFeedbackModal(false);
               setCurrentFeedback(null);
               isProcessing.current = false; 

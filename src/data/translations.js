@@ -1,4 +1,5 @@
 export const TRANSLATIONS = {
+  // ================= ESPAÑOL =================
   es: {
     app: {
       title: 'Sistema de Exámenes',
@@ -22,7 +23,7 @@ export const TRANSLATIONS = {
       next: 'Siguiente',
       finish: 'Finalizar',
       total: 'Total',
-      question: 'Pregunta', // ✅ NUEVO
+      question: 'Pregunta',
       hours: 'h',
       categories: 'categorías',
       minutes: 'min',
@@ -211,7 +212,7 @@ export const TRANSLATIONS = {
         reset: 'Reiniciar',
         mark: 'Marcar',
         flip: 'Girar',
-        tapToFlip: 'Tap para girar', // ✅ NUEVO
+        tapToFlip: 'Tap para girar',
         progress: 'estudiadas',
         tip: 'Espacio/Enter para girar, ← → navegar',
         cardCurrent: 'Tarjeta',
@@ -296,7 +297,14 @@ export const TRANSLATIONS = {
         nextLevel: 'Siguiente Nivel',
         progress: 'Progreso',
         remaining: 'Faltan'
-      }
+      },
+      // ✅ NUEVAS CLAVES PARA EL HUD (ESPAÑOL)
+      xp: 'XP',
+      loot: 'LOOT',
+      open: 'ABRIR',
+      combo_max: '🔥 ¡MAX COMBO! 🔥',
+      warming_up: '⚡ CALENTANDO ⚡',
+      combo_count: '{count} / 5 SEGUIDAS'
     },
     analytics: {
       title: 'Panel de Rendimiento',
@@ -369,7 +377,7 @@ export const TRANSLATIONS = {
       next: 'Next',
       finish: 'Finish',
       total: 'Total',
-      question: 'Question', // ✅ NUEVO
+      question: 'Question',
       hours: 'h',
       categories: 'categories',
       minutes: 'min',
@@ -554,7 +562,7 @@ export const TRANSLATIONS = {
         reset: 'Reset',
         mark: 'Mark',
         flip: 'Flip',
-        tapToFlip: 'Tap to flip', // ✅ NUEVO
+        tapToFlip: 'Tap to flip',
         progress: 'studied',
         tip: 'Space/Enter to flip, ← → navigate',
         cardCurrent: 'Current Card',
@@ -639,7 +647,14 @@ export const TRANSLATIONS = {
         nextLevel: 'Next Level',
         progress: 'Progress',
         remaining: 'Remaining'
-      }
+      },
+      // ✅ NUEVAS CLAVES PARA EL HUD (INGLÉS)
+      xp: 'XP',
+      loot: 'LOOT',
+      open: 'OPEN',
+      combo_max: '🔥 MAX COMBO! 🔥',
+      warming_up: '⚡ WARMING UP ⚡',
+      combo_count: '{count} / 5 STREAK'
     },
     analytics: {
       title: 'Performance Dashboard',

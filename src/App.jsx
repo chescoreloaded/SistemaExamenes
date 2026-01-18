@@ -3,9 +3,9 @@ import { AnimatePresence } from 'framer-motion';
 import { PageTransition } from './components/common/PageTransition';
 import { SoundProvider } from './context/SoundContext';
 import { LanguageProvider } from './context/LanguageContext';
-// ✅ 1. IMPORTAR EL PROVEEDOR DEL TEMA (FALTABA ESTO)
 import { ThemeProvider } from '@/context/ThemeContext';
 import { useEffect } from 'react';
+import { Howler } from 'howler'; // ✅ Importamos Howler
 
 // Layouts
 import MainLayout from './components/layout/MainLayout';
@@ -78,11 +78,31 @@ function AnimatedRoutes() {
 }
 
 function App() {
+  
+  // ✅ EFECTO GLOBAL: Desbloquear AudioContext al primer clic
+  useEffect(() => {
+    const unlockAudio = () => {
+      // Verificamos si existe ctx antes de acceder
+      if (Howler.ctx && Howler.ctx.state === 'suspended') {
+        Howler.ctx.resume();
+      }
+    };
+
+    // Escuchamos una sola vez en varios eventos para asegurar compatibilidad móvil
+    document.addEventListener('click', unlockAudio, { once: true });
+    document.addEventListener('touchstart', unlockAudio, { once: true });
+    document.addEventListener('keydown', unlockAudio, { once: true });
+
+    return () => {
+      document.removeEventListener('click', unlockAudio);
+      document.removeEventListener('touchstart', unlockAudio);
+      document.removeEventListener('keydown', unlockAudio);
+    };
+  }, []);
+
   return (
     <LanguageProvider>
       <SoundProvider>
-        {/* ✅ 2. ENVOLVER LA APP CON THEMEPROVIDER (FALTABA ESTO) */}
-        {/* Sin esto, 'isDark' no funciona y las gráficas no cambian de color */}
         <ThemeProvider>
           <Router>
             <ScrollToTop />
