@@ -298,13 +298,35 @@ export const TRANSLATIONS = {
         progress: 'Progreso',
         remaining: 'Faltan'
       },
-      // ✅ NUEVAS CLAVES PARA EL HUD (ESPAÑOL)
+      // ✅ GAMIFICACIÓN AGRESIVA
       xp: 'XP',
       loot: 'LOOT',
       open: 'ABRIR',
       combo_max: '🔥 ¡MAX COMBO! 🔥',
       warming_up: '⚡ CALENTANDO ⚡',
-      combo_count: '{count} / 5 SEGUIDAS'
+      combo_count: '{count} / 5 SEGUIDAS',
+      chest_tier: "COFRE NIVEL {tier}",
+      // ✅ SISTEMA DE RECOMPENSAS EVOLUTIVO
+      rewards: {
+        blue_shard: "Cristal de Datos",
+        red_core: "Núcleo de Plasma",
+        purple_cube: "Cubo Cuántico",
+        gold_isotope: "Isótopo Solar",      // Nuevo Tier 4
+        emerald_bio: "Bio-Materia Pura"
+        
+      },
+      // ✅ MODAL PUSH YOUR LUCK
+      modal: {
+        title: "¡COFRE LISTO!",
+        subtitle_tier_1: "Has asegurado un Cristal de Datos (Tier 1).",
+        subtitle_tier_2: "¡Genial! Mejorado a Núcleo de Plasma (Tier 2).",
+        subtitle_tier_3: "¡PODER MÁXIMO! Tienes un Cubo Cuántico (Tier 3).",
+        subtitle_tier_4: "¡LEGENDARIO! Isótopo Solar inestable (Tier 4).", // Nuevo
+        subtitle_tier_5: "¡NIVEL DIVINO! Bio-Materia Pura obtenida (Tier 5).",
+        risk_text: "¿Quieres abrirlo ahora o arriesgarte para mejorar el loot?",
+        btn_claim: "RECOGER RECOMPENSA",
+        btn_risk: "ARRIESGAR (+5 RACHA)"
+      }
     },
     analytics: {
       title: 'Panel de Rendimiento',
@@ -648,13 +670,34 @@ export const TRANSLATIONS = {
         progress: 'Progress',
         remaining: 'Remaining'
       },
-      // ✅ NUEVAS CLAVES PARA EL HUD (INGLÉS)
+      // ✅ GAMIFICACIÓN AGRESIVA (EN)
       xp: 'XP',
       loot: 'LOOT',
       open: 'OPEN',
       combo_max: '🔥 MAX COMBO! 🔥',
       warming_up: '⚡ WARMING UP ⚡',
-      combo_count: '{count} / 5 STREAK'
+      combo_count: '{count} / 5 STREAK',
+      chest_tier: "CHEST TIER {tier}",
+      // ✅ EVOLVING REWARDS
+      rewards: {
+        blue_shard: "Data Shard",
+        red_core: "Plasma Core",
+        purple_cube: "Quantum Cube",
+        gold_isotope: "Solar Isotope",      // New Tier 4
+        emerald_bio: "Pure Bio-Matter"
+      },
+      // ✅ PUSH YOUR LUCK MODAL
+      modal: {
+        title: "LOOT READY!",
+        subtitle_tier_1: "You secured a Data Shard (Tier 1).",
+        subtitle_tier_2: "Great! Upgraded to Plasma Core (Tier 2).",
+        subtitle_tier_3: "MAX POWER! Quantum Cube obtained (Tier 3).",
+        subtitle_tier_4: "LEGENDARY! Unstable Solar Isotope (Tier 4).", // New
+        subtitle_tier_5: "GODLIKE! Pure Bio-Matter obtained (Tier 5).",
+        risk_text: "Claim reward now or push your luck for better loot?",
+        btn_claim: "CLAIM REWARD",
+        btn_risk: "PUSH LUCK (+5 STREAK)"
+      }
     },
     analytics: {
       title: 'Performance Dashboard',
